@@ -16,11 +16,20 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.PCR">
         <activity
-            android:name=".presentation.activity.ConnectActivity"
-            android:exported="false"
-            android:launchMode="singleTask"/>
+            android:name=".presentation.activity.MenuPCRActivity"
+            android:exported="false" />
         <activity
             android:name=".presentation.activity.BluetoothConnectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.activity.TCPConnectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.activity.ConnectActivity"
+            android:exported="false"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".presentation.activity.ChooseConnectTypeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

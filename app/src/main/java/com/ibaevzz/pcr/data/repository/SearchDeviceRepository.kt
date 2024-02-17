@@ -8,8 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import com.ibaevzz.pcr.domain.entity.Device
-import com.ibaevzz.pcr.domain.repository.SearchDevice
-import com.ibaevzz.pcr.domain.repository.StopSearch
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -19,7 +17,7 @@ import javax.inject.Singleton
 
 @SuppressLint("MissingPermission")
 @Singleton
-class SearchDeviceRepository @Inject constructor(private val context: Context): SearchDevice, StopSearch{
+class SearchDeviceRepository @Inject constructor(private val context: Context): SearchRepository{
 
     private val _foundDevices = MutableSharedFlow<List<Device>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val listOfDevices = mutableListOf<Device>()
@@ -51,6 +49,8 @@ class SearchDeviceRepository @Inject constructor(private val context: Context): 
     }
 
     override fun stopSearch(){
-        context.unregisterReceiver(searchBroadcastReceiver)
+        try {
+            context.unregisterReceiver(searchBroadcastReceiver)
+        }catch (_: Exception){}
     }
 }

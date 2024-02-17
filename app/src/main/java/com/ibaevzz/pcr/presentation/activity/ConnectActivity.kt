@@ -1,10 +1,7 @@
 package com.ibaevzz.pcr.presentation.activity
 
 import android.bluetooth.BluetoothAdapter
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
@@ -12,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.ibaevzz.pcr.App
+import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.databinding.ActivityConnectBinding
 import com.ibaevzz.pcr.presentation.viewmodel.ConnectViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,11 +22,11 @@ class ConnectActivity : AppCompatActivity() {
 
     companion object{
         const val ADDRESS_EXTRA = "ADDRESS"
+        const val IS_NETWORK_EXTRA = "IS_NETWORK"
     }
 
     private var isConnect = false
     private lateinit var binding: ActivityConnectBinding
-    private var address: String? = null
 
     @Inject
     lateinit var viewModelFactory: ConnectViewModel.Factory
@@ -37,23 +35,8 @@ class ConnectActivity : AppCompatActivity() {
     }
 
     private val registerBluetoothEnabled = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-        if(it.resultCode == RESULT_OK){
-            registerReceiver(bluetoothEnabledBroadcastReceiver, IntentFilter().also { filter ->
-                filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
-            })
-        }else{
+        if(it.resultCode != RESULT_OK){
             requestBluetoothEnabled()
-        }
-    }
-
-    private val bluetoothEnabledBroadcastReceiver = object: BroadcastReceiver(){
-        override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == BluetoothAdapter.ACTION_STATE_CHANGED){
-                if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) == BluetoothAdapter.STATE_TURNING_OFF){
-                    requestBluetoothEnabled()
-                    disconnect()
-                }
-            }
         }
     }
 
@@ -64,22 +47,25 @@ class ConnectActivity : AppCompatActivity() {
 
         (applicationContext as App).appComponent.inject(this)
 
-        if(address==null) address = intent.getStringExtra(ADDRESS_EXTRA)
-        if(address != null) {
-            registerReceiver(bluetoothEnabledBroadcastReceiver, IntentFilter().also {
-                it.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
-            })
+        val address = intent.getStringExtra(ADDRESS_EXTRA)
+        val isNetwork = intent.getBooleanExtra(IS_NETWORK_EXTRA, false)
 
+        if(address != null) {
             binding.connect.setOnClickListener {
                 lifecycleScope.launch(Dispatchers.IO) {
                     try {
-                        viewModel.connect(address!!)
+                        viewModel.connect(address)
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@ConnectActivity, "Подключено", Toast.LENGTH_SHORT)
                                 .show()
                             connect()
                         }
-                    } catch (ex: IOException) {
+                    }catch (_: BluetoothTurnedOffException){
+                        withContext(Dispatchers.Main){
+                            requestBluetoothEnabled()
+                            disconnect()
+                        }
+                    } catch (_: IOException) {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@ConnectActivity, "Не удалось подключиться", Toast.LENGTH_SHORT)
                                 .show()
@@ -88,18 +74,16 @@ class ConnectActivity : AppCompatActivity() {
                     }
                 }
             }
-
             binding.startWork.setOnClickListener{
-                //TODO
+                val menuIntent = Intent(this, MenuPCRActivity::class.java)
+                startActivity(menuIntent)
             }
-        }else{
+        }else if(isNetwork){
+            //TODO
+        }
+        else{
             finish()
         }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        //TODO
     }
 
     private fun connect(){
@@ -121,6 +105,10 @@ class ConnectActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(bluetoothEnabledBroadcastReceiver)
+        if(isConnect) {
+            try{
+                viewModel.closeConnection()
+            }catch (_: Exception) {}
+        }
     }
 }

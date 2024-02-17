@@ -108,6 +108,7 @@ class BluetoothConnectActivity : AppCompatActivity() {
             filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
         })
         viewModel.getDevices()
+        if(!bluetoothManager.adapter.isEnabled && checkPermissions()) requestBluetoothEnabled()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray){

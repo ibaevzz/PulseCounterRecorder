@@ -2,7 +2,10 @@ package com.ibaevzz.pcr.di
 
 import android.content.Context
 import com.ibaevzz.pcr.data.repository.BluetoothPCRRepository
+import com.ibaevzz.pcr.data.repository.PCRRepository
 import com.ibaevzz.pcr.data.repository.SearchDeviceRepository
+import com.ibaevzz.pcr.data.repository.SearchRepository
+import com.ibaevzz.pcr.domain.repository.CloseConnectionDevice
 import com.ibaevzz.pcr.domain.repository.ConnectToDevice
 import com.ibaevzz.pcr.domain.repository.SearchDevice
 import com.ibaevzz.pcr.domain.repository.StopSearch
@@ -33,12 +36,22 @@ interface AppComponent {
 
 @Module
 interface SearchModules{
-    @Binds
-    fun bindSearchDeviceRepository(searchDeviceRepository: SearchDeviceRepository): SearchDevice
 
     @Binds
-    fun bindStopSearchDeviceRepository(searchDeviceRepository: SearchDeviceRepository): StopSearch
+    fun bindSearchDeviceRepository_SearchRepository(searchDeviceRepository: SearchDeviceRepository): SearchRepository
 
     @Binds
-    fun bindBluetoothPCRRepository_ConnectToDevice(bluetoothPCRRepository: BluetoothPCRRepository): ConnectToDevice
+    fun bindSearchRepository_SearchDevice(searchRepository: SearchRepository): SearchDevice
+
+    @Binds
+    fun bindStopSearchRepository_StopSearch(searchRepository: SearchRepository): StopSearch
+
+    @Binds
+    fun bindBluetoothPCRRepository_PCRRepository(bluetoothPCRRepository: BluetoothPCRRepository): PCRRepository
+
+    @Binds
+    fun bindPCRRepository_ConnectToDevice(PCRRepository: PCRRepository): ConnectToDevice
+
+    @Binds
+    fun bindPCRRepository_CloseConnectionDevice(PCRRepository: PCRRepository): CloseConnectionDevice
 }
