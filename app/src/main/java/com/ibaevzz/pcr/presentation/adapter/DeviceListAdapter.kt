@@ -26,7 +26,7 @@ class DeviceListAdapter(private val callback: (address: String) -> Unit)
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
         holder.binding.name.text = currentList[position].name
         holder.binding.root.setOnClickListener{
-            callback(currentList[position].name)
+            callback(currentList[position].mac)
         }
     }
 }

@@ -26,12 +26,13 @@ import javax.inject.Inject
 
 class BluetoothConnectActivity : AppCompatActivity() {
 
-    private val PERMISSION_REQUEST_CODE = 0
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 0
+    }
 
     private lateinit var binding: ActivityBluetoothConnectBinding
     private lateinit var bluetoothManager: BluetoothManager
     private lateinit var adapter: DeviceListAdapter
-
 
     @Inject
     lateinit var viewModelFactory: BluetoothConnectViewModel.Factory
@@ -63,6 +64,7 @@ class BluetoothConnectActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityBluetoothConnectBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -82,6 +84,30 @@ class BluetoothConnectActivity : AppCompatActivity() {
             showDevices()
             viewModel.getDevices()
         }
+
+        lifecycleScope.launch(Dispatchers.Default) {
+            viewModel.startConnectActivity.collect {address ->
+                withContext(Dispatchers.Main){
+                    if(address != null) {
+                        val intent =
+                            Intent(this@BluetoothConnectActivity, ConnectActivity::class.java)
+                                .also { intent ->
+                                    intent.putExtra(ConnectActivity.ADDRESS_EXTRA, address)
+                                }
+                        unregisterReceiver(bluetoothEnabledBroadcastReceiver)
+                        startActivity(intent)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(bluetoothEnabledBroadcastReceiver, IntentFilter().also {filter ->
+            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+        })
+        viewModel.getDevices()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray){

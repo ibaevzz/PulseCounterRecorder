@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">PCR</string>
     <string name="search">Поиск устройств</string>
+    <string name="connect">Подключиться</string>
+    <string name="work_with_pcr">Работа с СИР</string>
+    <string name="disconnect">Отключиться</string>
 </resources>

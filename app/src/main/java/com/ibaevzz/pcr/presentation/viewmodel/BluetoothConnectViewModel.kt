@@ -2,10 +2,13 @@ package com.ibaevzz.pcr.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.ibaevzz.pcr.domain.entity.Device
 import com.ibaevzz.pcr.domain.usecase.GetFoundDevicesUseCase
 import com.ibaevzz.pcr.domain.usecase.StopSearchUseCase
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class BluetoothConnectViewModel(private val getFoundDevices: GetFoundDevicesUseCase,
@@ -22,6 +25,9 @@ class BluetoothConnectViewModel(private val getFoundDevices: GetFoundDevicesUseC
         }
     }
 
+    private val _startConnectActivity = MutableSharedFlow<String?>()
+    val startConnectActivity = _startConnectActivity.asSharedFlow()
+
     override fun onCleared() {
         super.onCleared()
         stopSearch()
@@ -32,6 +38,8 @@ class BluetoothConnectViewModel(private val getFoundDevices: GetFoundDevicesUseC
     }
 
     fun callback(address: String){
-        //TODO
+        viewModelScope.launch(Dispatchers.Default){
+            _startConnectActivity.emit(address)
+        }
     }
 }

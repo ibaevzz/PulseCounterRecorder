@@ -15,8 +15,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
+import javax.inject.Singleton
 
 @SuppressLint("MissingPermission")
+@Singleton
 class SearchDeviceRepository @Inject constructor(private val context: Context): SearchDevice, StopSearch{
 
     private val _foundDevices = MutableSharedFlow<List<Device>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
