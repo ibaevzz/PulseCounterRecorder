@@ -15,12 +15,12 @@ class ChooseConnectTypeActivity: AppCompatActivity() {
         setContentView(binding.root)
 
         binding.bluetooth.setOnClickListener{
-            val bluetoothIntent = Intent(this, BluetoothConnectActivity::class.java)
+            val bluetoothIntent = Intent(this, BluetoothSearchActivity::class.java)
             startActivity(bluetoothIntent)
         }
         binding.tcp.setOnClickListener{
-            val tcpIntent = Intent(this, TCPConnectActivity::class.java)
-            startActivity(tcpIntent)
+            val wifiIntent = Intent(this, WifiConnectActivity::class.java)
+            startActivity(wifiIntent)
         }
     }
 }

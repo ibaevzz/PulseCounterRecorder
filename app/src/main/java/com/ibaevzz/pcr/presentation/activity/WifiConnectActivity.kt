@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.ibaevzz.pcr.databinding.ActivityTcpConnectBinding
 
-class TCPConnectActivity: AppCompatActivity() {
+class WifiConnectActivity: AppCompatActivity() {
 
     private lateinit var binding: ActivityTcpConnectBinding
 

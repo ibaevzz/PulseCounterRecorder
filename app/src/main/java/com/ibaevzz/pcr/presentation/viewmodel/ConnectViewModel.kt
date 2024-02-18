@@ -2,30 +2,62 @@ package com.ibaevzz.pcr.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.ibaevzz.pcr.domain.usecase.CloseConnectionDeviceUseCase
-import com.ibaevzz.pcr.domain.usecase.ConnectToDeviceUseCase
+import androidx.lifecycle.viewModelScope
+import com.ibaevzz.pcr.data.repository.ConnectRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ConnectViewModel(private val connectToDeviceUseCase: ConnectToDeviceUseCase,
-                       private val closeConnectionDeviceUseCase: CloseConnectionDeviceUseCase): ViewModel() {
+class ConnectViewModel(private val connectRepository: ConnectRepository): ViewModel() {
 
-    class Factory @Inject constructor(private val connectToDeviceUseCase: ConnectToDeviceUseCase,
-                                      private val closeConnectionDeviceUseCase: CloseConnectionDeviceUseCase)
+    class Factory @Inject constructor(private val connectRepository: ConnectRepository)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if(modelClass == ConnectViewModel::class.java){
-                return ConnectViewModel(connectToDeviceUseCase, closeConnectionDeviceUseCase) as T
+                return ConnectViewModel(connectRepository) as T
             }
             return super.create(modelClass)
         }
     }
 
-    suspend fun connect(address: String){
-        connectToDeviceUseCase(address)
+    private val _errorsSharedFlow = MutableSharedFlow<Exception>(replay = 1)
+    val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
+
+    private val _isConnect = MutableStateFlow<Boolean?>(false)
+    val isConnect = _isConnect.asStateFlow()
+
+    fun connect(data: String, port: String){
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                _isConnect.emit(null)
+                connectRepository.connect(data, port)
+                _isConnect.emit(true)
+            }catch (ex: Exception) {
+                _errorsSharedFlow.emit(ex)
+                _isConnect.emit(false)
+            }
+        }
     }
 
     fun closeConnection(){
-        closeConnectionDeviceUseCase()
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                connectRepository.closeConnection()
+                _isConnect.emit(false)
+            }catch (ex: Exception){
+                _errorsSharedFlow.emit(ex)
+                _isConnect.emit(false)
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        closeConnection()
     }
 
 }

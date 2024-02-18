@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ibaevzz.pcr.databinding.DeviceBinding
-import com.ibaevzz.pcr.domain.entity.Device
+import com.ibaevzz.pcr.data.dto.Device
 
 class DeviceListAdapter(private val callback: (address: String) -> Unit)
     : ListAdapter<Device, DeviceListAdapter.DeviceViewHolder>(DeviceItemCallback()){

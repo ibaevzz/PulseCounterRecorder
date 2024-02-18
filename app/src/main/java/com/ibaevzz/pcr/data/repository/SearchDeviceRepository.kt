@@ -7,17 +7,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.ibaevzz.pcr.domain.entity.Device
+import com.ibaevzz.pcr.data.dto.Device
+import com.ibaevzz.pcr.di.bluetooth.BluetoothScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
-import javax.inject.Singleton
 
 @SuppressLint("MissingPermission")
-@Singleton
-class SearchDeviceRepository @Inject constructor(private val context: Context): SearchRepository{
+@BluetoothScope
+class SearchDeviceRepository @Inject constructor(private val context: Context){
 
     private val _foundDevices = MutableSharedFlow<List<Device>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val listOfDevices = mutableListOf<Device>()
@@ -39,7 +39,7 @@ class SearchDeviceRepository @Inject constructor(private val context: Context): 
         }
     }
 
-    override fun search(): SharedFlow<List<Device>> {
+    fun search(): SharedFlow<List<Device>> {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter.startDiscovery()
         context.registerReceiver(searchBroadcastReceiver, IntentFilter().also {
@@ -48,7 +48,7 @@ class SearchDeviceRepository @Inject constructor(private val context: Context): 
         return _foundDevices.asSharedFlow()
     }
 
-    override fun stopSearch(){
+    fun stopSearch(){
         try {
             context.unregisterReceiver(searchBroadcastReceiver)
         }catch (_: Exception){}

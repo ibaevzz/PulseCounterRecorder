@@ -3,23 +3,20 @@ package com.ibaevzz.pcr.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ibaevzz.pcr.domain.entity.Device
-import com.ibaevzz.pcr.domain.usecase.GetFoundDevicesUseCase
-import com.ibaevzz.pcr.domain.usecase.StopSearchUseCase
+import com.ibaevzz.pcr.data.dto.Device
+import com.ibaevzz.pcr.data.repository.SearchDeviceRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class BluetoothConnectViewModel(private val getFoundDevices: GetFoundDevicesUseCase,
-                                private val stopSearch: StopSearchUseCase): ViewModel(){
+class BluetoothSearchViewModel(private val searchDeviceRepository: SearchDeviceRepository): ViewModel(){
 
-    class Factory @Inject constructor(private val getFoundDevices: GetFoundDevicesUseCase,
-                                      private val stopSearch: StopSearchUseCase)
+    class Factory @Inject constructor(private val searchDeviceRepository: SearchDeviceRepository)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if(modelClass == BluetoothConnectViewModel::class.java){
-                return BluetoothConnectViewModel(getFoundDevices, stopSearch) as T
+            if(modelClass == BluetoothSearchViewModel::class.java){
+                return BluetoothSearchViewModel(searchDeviceRepository) as T
             }
             return super.create(modelClass)
         }
@@ -30,11 +27,11 @@ class BluetoothConnectViewModel(private val getFoundDevices: GetFoundDevicesUseC
 
     override fun onCleared() {
         super.onCleared()
-        stopSearch()
+        searchDeviceRepository.stopSearch()
     }
 
     fun getDevices(): SharedFlow<List<Device>>{
-        return getFoundDevices()
+        return searchDeviceRepository.search()
     }
 
     fun callback(address: String){

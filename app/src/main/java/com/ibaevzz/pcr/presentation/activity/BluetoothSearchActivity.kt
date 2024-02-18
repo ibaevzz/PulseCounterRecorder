@@ -15,29 +15,31 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ibaevzz.pcr.App
 import com.ibaevzz.pcr.databinding.ActivityBluetoothConnectBinding
+import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.presentation.adapter.DeviceListAdapter
-import com.ibaevzz.pcr.presentation.viewmodel.BluetoothConnectViewModel
+import com.ibaevzz.pcr.presentation.viewmodel.BluetoothSearchViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class BluetoothConnectActivity : AppCompatActivity() {
+class BluetoothSearchActivity : AppCompatActivity() {
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 0
     }
 
     private lateinit var binding: ActivityBluetoothConnectBinding
-    private lateinit var bluetoothManager: BluetoothManager
     private lateinit var adapter: DeviceListAdapter
 
     @Inject
-    lateinit var viewModelFactory: BluetoothConnectViewModel.Factory
+    lateinit var bluetoothManager: BluetoothManager
+
+    @Inject
+    lateinit var viewModelFactory: BluetoothSearchViewModel.Factory
     private val viewModel by lazy {
-        ViewModelProvider(this, viewModelFactory)[BluetoothConnectViewModel::class.java]
+        ViewModelProvider(this, viewModelFactory)[BluetoothSearchViewModel::class.java]
     }
 
     private val registerBluetoothEnabled = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
@@ -64,14 +66,12 @@ class BluetoothConnectActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityBluetoothConnectBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        (applicationContext as App).appComponent.inject(this)
+        BluetoothComponent.init(applicationContext).inject(this)
 
         adapter = DeviceListAdapter(viewModel::callback)
-        bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
 
         if(!checkPermissions()){
             requestPermissions()
@@ -90,7 +90,7 @@ class BluetoothConnectActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main){
                     if(address != null) {
                         val intent =
-                            Intent(this@BluetoothConnectActivity, ConnectActivity::class.java)
+                            Intent(this@BluetoothSearchActivity, ConnectActivity::class.java)
                                 .also { intent ->
                                     intent.putExtra(ConnectActivity.ADDRESS_EXTRA, address)
                                 }
