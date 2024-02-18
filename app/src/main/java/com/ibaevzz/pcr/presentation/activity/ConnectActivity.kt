@@ -52,6 +52,8 @@ class ConnectActivity : AppCompatActivity() {
 
         if(address != null) {
             binding.connect.setOnClickListener {
+                binding.connect.isEnabled = false
+                binding.startWork.isEnabled = false
                 lifecycleScope.launch(Dispatchers.IO) {
                     try {
                         viewModel.connect(address)

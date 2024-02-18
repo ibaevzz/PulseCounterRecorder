@@ -9,6 +9,7 @@ import android.content.Context
 import com.ibaevzz.pcr.UUID
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.io.InputStream
@@ -25,6 +26,7 @@ class BluetoothPCRRepository @Inject constructor(private val context: Context): 
     private var inputStream: InputStream? = null
     private var bluetoothSocket: BluetoothSocket? = null
     private lateinit var adapter: BluetoothAdapter
+    private val mutex = Mutex()
 
     @SuppressLint("MissingPermission")
     override suspend fun connect(address: String) {
@@ -39,9 +41,13 @@ class BluetoothPCRRepository @Inject constructor(private val context: Context): 
         bluetoothSocket = device?.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID))
 
         withContext(Dispatchers.IO) {
-            bluetoothSocket?.connect()
-            outputStream = bluetoothSocket?.outputStream
-            inputStream = bluetoothSocket?.inputStream
+            mutex.lock()
+            if(bluetoothSocket?.isConnected==false) {
+                bluetoothSocket?.connect()
+                outputStream = bluetoothSocket?.outputStream
+                inputStream = bluetoothSocket?.inputStream
+            }
+            mutex.unlock()
         }
     }
 
