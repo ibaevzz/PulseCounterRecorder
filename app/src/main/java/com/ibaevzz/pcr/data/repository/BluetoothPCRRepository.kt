@@ -7,7 +7,10 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import com.ibaevzz.pcr.UUID
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
+import com.ibaevzz.pcr.di.InputQualifier
+import com.ibaevzz.pcr.di.OutputQualifier
 import com.ibaevzz.pcr.di.bluetooth.BluetoothScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -18,7 +21,9 @@ import java.util.*
 import javax.inject.Inject
 
 @BluetoothScope
-class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: BluetoothManager): PCRRepository(){
+class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: BluetoothManager,
+                                                 @InputQualifier private val inputDispatcher: CoroutineDispatcher,
+                                                 @OutputQualifier private val outputDispatcher: CoroutineDispatcher): PCRRepository(){
 
     override var outputStream: OutputStream? = null
     override var inputStream: InputStream? = null
@@ -36,19 +41,17 @@ class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: B
         if(!::adapter.isInitialized) throw IOException()
         if(!adapter.isEnabled) throw BluetoothTurnedOffException()
 
-        val device: BluetoothDevice? = adapter.getRemoteDevice(address)
-        bluetoothSocket = device?.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID))
-
         withContext(Dispatchers.IO) {
             connectMutex.lock()
+            if(isConnect) return@withContext
             try {
+                val device: BluetoothDevice? = adapter.getRemoteDevice(address)
+                bluetoothSocket = device?.createInsecureRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID))
                 if(bluetoothSocket?.isConnected==false) {
                     bluetoothSocket?.connect()
                     outputStream = bluetoothSocket?.outputStream
                     inputStream = bluetoothSocket?.inputStream
                 }
-            }catch(ex: Exception){
-                throw ex
             }finally {
                 connectMutex.unlock()
             }
@@ -62,12 +65,11 @@ class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: B
         withContext(Dispatchers.IO) {
             try {
                 closeMutex.lock()
+                if(!isConnect) return@withContext
                 outputStream?.close()
                 inputStream?.close()
                 bluetoothSocket?.close()
-            } catch (ex: Exception) {
-                throw ex
-            } finally {
+            }finally {
                 closeMutex.unlock()
             }
         }
