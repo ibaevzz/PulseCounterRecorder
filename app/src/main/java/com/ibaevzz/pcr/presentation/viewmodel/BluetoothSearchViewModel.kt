@@ -27,11 +27,15 @@ class BluetoothSearchViewModel(private val searchDeviceRepository: SearchDeviceR
 
     override fun onCleared() {
         super.onCleared()
-        searchDeviceRepository.stopSearch()
+        stopSearch()
     }
 
     fun getDevices(): SharedFlow<List<Device>>{
         return searchDeviceRepository.search()
+    }
+
+    fun stopSearch(){
+        searchDeviceRepository.stopSearch()
     }
 
     fun callback(address: String){

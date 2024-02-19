@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
-import android.content.Context
 import com.ibaevzz.pcr.UUID
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.ConnectException
@@ -20,7 +19,7 @@ import java.util.*
 import javax.inject.Inject
 
 @BluetoothScope
-class BluetoothConnectRepository @Inject constructor(private val context: Context): ConnectRepository{
+class BluetoothConnectRepository @Inject constructor(private val bluetoothManager: BluetoothManager): ConnectRepository{
 
     private var outputStream: OutputStream? = null
     private var inputStream: InputStream? = null
@@ -31,7 +30,6 @@ class BluetoothConnectRepository @Inject constructor(private val context: Contex
 
     @SuppressLint("MissingPermission")
     override suspend fun connect(address: String, port: String) {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         adapter = bluetoothManager.adapter
 
         if(!::adapter.isInitialized) throw IOException()

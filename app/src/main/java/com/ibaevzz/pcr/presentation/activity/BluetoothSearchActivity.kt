@@ -95,6 +95,7 @@ class BluetoothSearchActivity : AppCompatActivity() {
                                     intent.putExtra(ConnectActivity.ADDRESS_EXTRA, address)
                                 }
                         unregisterReceiver(bluetoothEnabledBroadcastReceiver)
+                        viewModel.stopSearch()
                         startActivity(intent)
                     }
                 }

@@ -4,6 +4,7 @@ import android.content.Context
 import com.ibaevzz.pcr.di.app.AppComponent
 import com.ibaevzz.pcr.presentation.activity.BluetoothSearchActivity
 import com.ibaevzz.pcr.presentation.activity.ConnectActivity
+import com.ibaevzz.pcr.presentation.service.RssiService
 import dagger.Subcomponent
 
 @BluetoothScope
@@ -12,6 +13,7 @@ interface BluetoothComponent {
 
     fun inject(searchActivity: BluetoothSearchActivity)
     fun inject(connectActivity: ConnectActivity)
+    fun inject(rssiService: RssiService)
 
     @Subcomponent.Builder
     interface Builder{

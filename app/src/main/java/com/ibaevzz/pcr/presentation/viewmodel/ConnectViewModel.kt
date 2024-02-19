@@ -30,6 +30,9 @@ class ConnectViewModel(private val connectRepository: ConnectRepository): ViewMo
     private val _isConnect = MutableStateFlow<Boolean?>(false)
     val isConnect = _isConnect.asStateFlow()
 
+    private val _rssi: MutableStateFlow<Short> = MutableStateFlow(0)
+    val rssi = _rssi.asStateFlow()
+
     fun connect(data: String, port: String){
         viewModelScope.launch(Dispatchers.IO){
             try {
@@ -52,6 +55,12 @@ class ConnectViewModel(private val connectRepository: ConnectRepository): ViewMo
                 _errorsSharedFlow.emit(ex)
                 _isConnect.emit(false)
             }
+        }
+    }
+
+    fun sendRssi(rssi: Short){
+        viewModelScope.launch(Dispatchers.Default){
+            _rssi.emit(rssi)
         }
     }
 

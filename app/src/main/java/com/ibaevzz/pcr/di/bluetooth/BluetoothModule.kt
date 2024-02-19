@@ -12,7 +12,7 @@ import dagger.Provides
 class BluetoothModule {
 
     @Provides
-    fun getBluetoothManager(context: Context): BluetoothManager{
+    fun provideBluetoothManager(context: Context): BluetoothManager{
         return context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     }
 }

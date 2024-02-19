@@ -17,7 +17,8 @@ import javax.inject.Inject
 
 @SuppressLint("MissingPermission")
 @BluetoothScope
-class SearchDeviceRepository @Inject constructor(private val context: Context){
+class SearchDeviceRepository @Inject constructor(private val bluetoothManager: BluetoothManager,
+                                                 private val context: Context){
 
     private val _foundDevices = MutableSharedFlow<List<Device>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val listOfDevices = mutableListOf<Device>()
@@ -40,7 +41,6 @@ class SearchDeviceRepository @Inject constructor(private val context: Context){
     }
 
     fun search(): SharedFlow<List<Device>> {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter.startDiscovery()
         context.registerReceiver(searchBroadcastReceiver, IntentFilter().also {
             it.addAction(BluetoothDevice.ACTION_FOUND)
@@ -50,6 +50,7 @@ class SearchDeviceRepository @Inject constructor(private val context: Context){
 
     fun stopSearch(){
         try {
+            bluetoothManager.adapter.cancelDiscovery()
             context.unregisterReceiver(searchBroadcastReceiver)
         }catch (_: Exception){}
     }
