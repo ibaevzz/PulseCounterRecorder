@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import com.ibaevzz.pcr.UUID
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
-import com.ibaevzz.pcr.data.exceptions.ConnectException
 import com.ibaevzz.pcr.di.bluetooth.BluetoothScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -19,21 +18,22 @@ import java.util.*
 import javax.inject.Inject
 
 @BluetoothScope
-class BluetoothConnectRepository @Inject constructor(private val bluetoothManager: BluetoothManager): ConnectRepository{
+class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: BluetoothManager): PCRRepository(){
 
-    private var outputStream: OutputStream? = null
-    private var inputStream: InputStream? = null
+    override var outputStream: OutputStream? = null
+    override var inputStream: InputStream? = null
     private var bluetoothSocket: BluetoothSocket? = null
+    override val isConnect get() = bluetoothSocket?.isConnected ?: false
     private lateinit var adapter: BluetoothAdapter
     private val connectMutex = Mutex()
     private val closeMutex = Mutex()
 
     @SuppressLint("MissingPermission")
     override suspend fun connect(address: String, port: String) {
+        if(isConnect) return
         adapter = bluetoothManager.adapter
 
         if(!::adapter.isInitialized) throw IOException()
-
         if(!adapter.isEnabled) throw BluetoothTurnedOffException()
 
         val device: BluetoothDevice? = adapter.getRemoteDevice(address)
@@ -57,7 +57,7 @@ class BluetoothConnectRepository @Inject constructor(private val bluetoothManage
 
     override suspend fun closeConnection() {
         if(!adapter.isEnabled) throw BluetoothTurnedOffException()
-        if(bluetoothSocket?.isConnected != true) throw ConnectException()
+        if(!isConnect) return
 
         withContext(Dispatchers.IO) {
             try {

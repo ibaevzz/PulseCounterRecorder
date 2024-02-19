@@ -64,6 +64,10 @@ class RssiService: Service(){
 
     override fun onDestroy() {
         scope.cancel()
+        try {
+            unregisterReceiver(rssiBroadcastReceiver)
+            unregisterReceiver(discoveryStartedReceiver)
+        }catch (_: Exception){}
         super.onDestroy()
     }
 

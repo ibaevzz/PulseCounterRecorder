@@ -7,7 +7,6 @@ import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
@@ -35,6 +34,7 @@ class ConnectActivity : AppCompatActivity() {
 
     private var isConnect = false
     private lateinit var binding: ActivityConnectBinding
+    private var isNetwork: Boolean? = null
 
     @Inject
     lateinit var viewModelFactory: ConnectViewModel.Factory
@@ -67,7 +67,7 @@ class ConnectActivity : AppCompatActivity() {
         val address = intent.getStringExtra(ADDRESS_EXTRA)
         val ip = intent.getStringExtra(IP_EXTRA)
         val port = intent.getStringExtra(PORT_EXTRA)
-        val isNetwork = intent.getBooleanExtra(IS_NETWORK_EXTRA, false)
+        isNetwork = intent.getBooleanExtra(IS_NETWORK_EXTRA, false)
 
         if(address != null) {
             BluetoothComponent.init(applicationContext).inject(this)
@@ -77,7 +77,7 @@ class ConnectActivity : AppCompatActivity() {
             rssiServiceIntent.putExtra(ADDRESS_EXTRA, address)
             bindService(rssiServiceIntent, serviceConnection, BIND_AUTO_CREATE)
 
-        }else if(isNetwork && ip != null && port != null){
+        }else if(isNetwork!! && ip != null && port != null){
             WifiComponent.init(applicationContext).inject(this)
             startConnection(ip, port)
         }
@@ -87,8 +87,10 @@ class ConnectActivity : AppCompatActivity() {
     }
 
     private fun startConnection(address: String, port: String = ""){
-        lifecycleScope.launch {
-            viewModel.rssi.collect{Log.i("zzz", it.toString())}
+        if(!isNetwork!!) {
+            lifecycleScope.launch {
+                viewModel.rssi.collect {}//TODO
+            }
         }
         lifecycleScope.launch(Dispatchers.Default) {
             viewModel.errorsSharedFlow.collect{
@@ -158,6 +160,8 @@ class ConnectActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(serviceConnection)
+        if(!isNetwork!!) {
+            unbindService(serviceConnection)
+        }
     }
 }

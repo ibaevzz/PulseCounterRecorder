@@ -3,22 +3,23 @@ package com.ibaevzz.pcr.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.ibaevzz.pcr.data.repository.ConnectRepository
-import kotlinx.coroutines.Dispatchers
+import com.ibaevzz.pcr.data.repository.PCRRepository
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ConnectViewModel(private val connectRepository: ConnectRepository): ViewModel() {
+class ConnectViewModel(private val PCRRepository: PCRRepository,
+                       private val appScope: CoroutineScope): ViewModel() {
 
-    class Factory @Inject constructor(private val connectRepository: ConnectRepository)
+    class Factory @Inject constructor(private val PCRRepository: PCRRepository,
+                                      private val appScope: CoroutineScope)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if(modelClass == ConnectViewModel::class.java){
-                return ConnectViewModel(connectRepository) as T
+                return ConnectViewModel(PCRRepository, appScope) as T
             }
             return super.create(modelClass)
         }
@@ -37,7 +38,7 @@ class ConnectViewModel(private val connectRepository: ConnectRepository): ViewMo
         viewModelScope.launch(Dispatchers.IO){
             try {
                 _isConnect.emit(null)
-                connectRepository.connect(data, port)
+                PCRRepository.connect(data, port)
                 _isConnect.emit(true)
             }catch (ex: Exception) {
                 _errorsSharedFlow.emit(ex)
@@ -47,12 +48,12 @@ class ConnectViewModel(private val connectRepository: ConnectRepository): ViewMo
     }
 
     fun closeConnection(){
-        viewModelScope.launch(Dispatchers.IO){
+        appScope.launch{
             try {
-                connectRepository.closeConnection()
-                _isConnect.emit(false)
+                PCRRepository.closeConnection()
             }catch (ex: Exception){
                 _errorsSharedFlow.emit(ex)
+            }finally {
                 _isConnect.emit(false)
             }
         }
@@ -65,8 +66,8 @@ class ConnectViewModel(private val connectRepository: ConnectRepository): ViewMo
     }
 
     override fun onCleared() {
-        super.onCleared()
         closeConnection()
+        super.onCleared()
     }
 
 }

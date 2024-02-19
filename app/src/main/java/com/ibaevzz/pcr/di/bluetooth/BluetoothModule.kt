@@ -2,8 +2,8 @@ package com.ibaevzz.pcr.di.bluetooth
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import com.ibaevzz.pcr.data.repository.BluetoothConnectRepository
-import com.ibaevzz.pcr.data.repository.ConnectRepository
+import com.ibaevzz.pcr.data.repository.BluetoothPCRRepository
+import com.ibaevzz.pcr.data.repository.PCRRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -20,5 +20,5 @@ class BluetoothModule {
 @Module
 interface BindsModule{
     @Binds
-    fun bluetoothConnectRepositoryToConnectRepository(bluetoothConnectRepository: BluetoothConnectRepository): ConnectRepository
+    fun bluetoothPCRRepositoryToPCRRepository(bluetoothPCRRepository: BluetoothPCRRepository): PCRRepository
 }

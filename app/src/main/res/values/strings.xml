@@ -5,6 +5,12 @@
     <string name="work_with_pcr">Работа с СИР</string>
     <string name="disconnect">Отключиться</string>
     <string name="connect_type">Тип подключения</string>
-    <string name="tcp_connect">TCP подключение</string>
+    <string name="tcp_connect">Wifi подключение</string>
     <string name="bluetooth_connect">Bluetooth подключение</string>
+    <string name="requirements">Необходимо подключиться к сети в названии которой есть PMSK_PNR</string>
+    <string name="connect_to_wifi">Подключить сеть</string>
+    <string name="update">Обновить</string>
+    <string name="ip">IP:</string>
+    <string name="port">Port:</string>
+    <string name="contin">Далее</string>
 </resources>

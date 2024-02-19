@@ -3,6 +3,7 @@ package com.ibaevzz.pcr.di.wifi
 import android.content.Context
 import com.ibaevzz.pcr.di.app.AppComponent
 import com.ibaevzz.pcr.presentation.activity.ConnectActivity
+import com.ibaevzz.pcr.presentation.activity.WifiConnectActivity
 import dagger.Subcomponent
 
 @WifiScope
@@ -10,6 +11,7 @@ import dagger.Subcomponent
 interface WifiComponent {
 
     fun inject(connectActivity: ConnectActivity)
+    fun inject(wifiConnectActivity: WifiConnectActivity)
 
     @Subcomponent.Builder
     interface Builder{
