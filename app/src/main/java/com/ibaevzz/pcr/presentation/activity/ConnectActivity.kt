@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
+import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
+import com.ibaevzz.pcr.data.exceptions.WrongWifi
 import com.ibaevzz.pcr.databinding.ActivityConnectBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
@@ -104,6 +106,18 @@ class ConnectActivity : AppCompatActivity() {
                     is BluetoothTurnedOffException -> {
                         withContext(Dispatchers.Main){
                             requestBluetoothEnabled()
+                        }
+                    }
+                    is WifiTurnedOffException -> {
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@ConnectActivity, "WIFI отключен", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@ConnectActivity, WifiConnectActivity::class.java))
+                        }
+                    }
+                    is WrongWifi -> {
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@ConnectActivity, "Точка WIFI была изменена", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@ConnectActivity, WifiConnectActivity::class.java))
                         }
                     }
                     else -> {

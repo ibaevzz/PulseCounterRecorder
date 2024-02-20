@@ -1,8 +1,10 @@
 package com.ibaevzz.pcr.data.repository
 
 import android.net.wifi.WifiManager
+import com.ibaevzz.pcr.PMSK_PNR
 import com.ibaevzz.pcr.data.exceptions.ConnectException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
+import com.ibaevzz.pcr.data.exceptions.WrongWifi
 import com.ibaevzz.pcr.di.InputQualifier
 import com.ibaevzz.pcr.di.OutputQualifier
 import com.ibaevzz.pcr.di.wifi.WifiScope
@@ -19,17 +21,29 @@ import javax.inject.Inject
 @WifiScope
 class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager,
                                             @InputQualifier private val inputDispatcher: CoroutineDispatcher,
-                                            @OutputQualifier private val outputDispatcher: CoroutineDispatcher): PCRRepository() {
+                                            @OutputQualifier private val outputDispatcher: CoroutineDispatcher)
+    : PCRRepository(inputDispatcher, outputDispatcher) {
 
     override var inputStream: InputStream? = null
     override var outputStream: OutputStream? = null
     private var socket: Socket? = null
-    override val isConnect get() = socket?.isConnected?:false
+    private val isConnect get() = socket?.isConnected?:false
+    private var address = "0.0.0.0"
     private val connectMutex = Mutex()
     private val closeMutex = Mutex()
 
+    override fun checkConnection(): Boolean {
+        if(!wifiManager.isWifiEnabled) throw WifiTurnedOffException()
+        if(wifiManager.dhcpInfo.gateway != address.toInt()) throw WrongWifi()
+        if(!wifiManager.connectionInfo.ssid.contains(PMSK_PNR)) throw WrongWifi()
+        if(!isConnect) return false
+        return true
+    }
+
     override suspend fun connect(address: String, port: String) {
-        if(isConnect) return
+        this.address = address
+        if(checkConnection()) return
+
         withContext(Dispatchers.IO) {
             connectMutex.lock()
             if(isConnect) return@withContext
@@ -54,8 +68,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
     }
 
     override suspend fun closeConnection() {
-        if(!wifiManager.isWifiEnabled) throw WifiTurnedOffException()
-        if(!isConnect) return
+        if(!checkConnection()) return
 
         withContext(Dispatchers.IO){
             try {

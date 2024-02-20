@@ -14,33 +14,34 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 import javax.inject.Inject
 
 @BluetoothScope
-class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: BluetoothManager,
-                                                 @InputQualifier private val inputDispatcher: CoroutineDispatcher,
-                                                 @OutputQualifier private val outputDispatcher: CoroutineDispatcher): PCRRepository(){
+class BluetoothPCRRepository @Inject constructor(
+    bluetoothManager: BluetoothManager,
+    @InputQualifier private val inputDispatcher: CoroutineDispatcher,
+    @OutputQualifier private val outputDispatcher: CoroutineDispatcher)
+    : PCRRepository(inputDispatcher, outputDispatcher){
 
     override var outputStream: OutputStream? = null
     override var inputStream: InputStream? = null
     private var bluetoothSocket: BluetoothSocket? = null
-    override val isConnect get() = bluetoothSocket?.isConnected ?: false
-    private lateinit var adapter: BluetoothAdapter
+    private val isConnect get() = bluetoothSocket?.isConnected ?: false
+    private var adapter: BluetoothAdapter = bluetoothManager.adapter
     private val connectMutex = Mutex()
     private val closeMutex = Mutex()
 
+    override fun checkConnection(): Boolean{
+        if(!adapter.isEnabled) throw BluetoothTurnedOffException()
+        return isConnect
+    }
+
     @SuppressLint("MissingPermission")
     override suspend fun connect(address: String, port: String) {
-        if(isConnect) return
-        adapter = bluetoothManager.adapter
-
-        if(!::adapter.isInitialized) throw IOException()
-        if(!adapter.isEnabled) throw BluetoothTurnedOffException()
-
+        if(checkConnection()) return
         withContext(Dispatchers.IO) {
             connectMutex.lock()
             if(isConnect) return@withContext
@@ -59,9 +60,7 @@ class BluetoothPCRRepository @Inject constructor(private val bluetoothManager: B
     }
 
     override suspend fun closeConnection() {
-        if(!adapter.isEnabled) throw BluetoothTurnedOffException()
-        if(!isConnect) return
-
+        if(!checkConnection()) return
         withContext(Dispatchers.IO) {
             try {
                 closeMutex.lock()
