@@ -36,8 +36,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
         if(!wifiManager.isWifiEnabled) throw WifiTurnedOffException()
         if(wifiManager.dhcpInfo.gateway != address.toInt()) throw WrongWifi()
         if(!wifiManager.connectionInfo.ssid.contains(PMSK_PNR)) throw WrongWifi()
-        if(!isConnect) return false
-        return true
+        return isConnect
     }
 
     override suspend fun connect(address: String, port: String) {
