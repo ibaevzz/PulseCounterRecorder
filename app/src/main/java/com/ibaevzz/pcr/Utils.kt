@@ -1,6 +1,7 @@
 package com.ibaevzz.pcr
 
 import com.ibaevzz.pcr.data.exceptions.ToBytesException
+import kotlin.math.pow
 
 const val UUID = "00001101-0000-1000-8000-00805F9B34FB"
 const val PMSK_PNR = "PMSK_PNR"
@@ -94,4 +95,114 @@ fun ByteArray.fromBytes(byteOrder: ByteOrder): Int{
 sealed interface ByteOrder{
     object Big: ByteOrder
     object Little: ByteOrder
+}
+
+fun ByteArray.toDouble(): Double{
+    val s = get(3).toUByte().toString(2).padStart(8, '0') +
+            get(2).toUByte().toString(2).padStart(8, '0') +
+            get(1).toUByte().toString(2).padStart(8, '0') +
+            get(0).toUByte().toString(2).padStart(8, '0')
+    val z = s[0].digitToInt()
+    val step = s.substring(1, 9).toInt(2) - 127
+    var mant = "1${s.substring(9)}"
+    mant = if(step>=0){
+        mant.substring(0, step + 1)+'.'+mant.substring(step+1)
+    }else{
+        "0." + mant.padStart(23 + kotlin.math.abs(step), '0')
+    }
+    var ch = 0.0
+    var t = 0
+    var ii = 0
+    for(i in mant){
+        if(i=='.'){
+            t = ii
+            break
+        }
+        ii+=1
+    }
+    ii = t - 1
+    var ss = 0
+    while(ii >= 0){
+        ch += mant[ii].digitToInt() * 2.0.pow(ss.toDouble())
+        ss += 1
+        ii -= 1
+    }
+    ii = t + 1
+    ss = -1
+    while(ii<mant.length){
+        ch += mant[ii].digitToInt() * 2.0.pow(ss.toDouble())
+        ss -= 1
+        ii += 1
+    }
+    return if(z==1) -ch else ch
+}
+
+fun Double.toHex(): ByteArray{
+    val ch = kotlin.math.abs(this)
+    var m = 0
+    if(ch==0.0){
+        return byteArrayOf(0, 0, 0, 0)
+    }else if(ch.toInt() == 0){
+        var mm = -1
+        for(i in fractionalToBin(ch)){
+            if(i == '1'){
+                m = mm
+                break
+            }
+            mm -= 1
+        }
+    }else{
+        m = intToBin(ch).length - 1
+    }
+    val z = if(this<0) 1 else 0
+    val step = (m + 127).toString(2).padStart(8, '0')
+    val mant = if(m==0){
+        fractionalToBin(ch).padEnd(23, '0')
+    }else if(m>0){
+        (intToBin(ch).substring(1) + fractionalToBin(ch)).padEnd(23, '0')
+    }else{
+        if(fractionalToBin(ch).length<=23)
+            fractionalToBin(ch).substring(kotlin.math.abs(m)).padEnd(23, '0')
+        else
+            fractionalToBin(ch).substring(kotlin.math.abs(m), 23 + kotlin.math.abs(m))
+    }
+    var res = ""
+    var i = 0
+    val s = z.toString() + step + mant.substring(0, 23)
+    while(i < s.length){
+        res += s.substring(i..i+3).toInt(2).toString(16)
+        i += 4
+    }
+    i = res.length-1
+    var ii = 0
+    val resB = ByteArray(4)
+    while(i>0){
+        resB[ii] = (res[i-1].toString() + res[i].toString()).toUByte(16).toByte()
+        ii += 1
+        i -= 2
+    }
+    return resB
+}
+
+private fun intToBin(a: Double): String{
+    val ch: Int = a.toInt()
+    return ch.toString(2)
+}
+
+private fun fractionalToBin(a: Double): String{
+    var ch = a % 1
+    var s = ""
+    for(i in 0..40){
+        ch *= 2
+        if (ch>=1){
+            s+="1"
+            ch-=1
+        }else{
+            s+="0"
+        }
+        if(ch==0.0){
+            break
+        }
+    }
+    return s
 }

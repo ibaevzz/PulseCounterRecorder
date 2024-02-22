@@ -9,6 +9,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.math.roundToLong
 
 abstract class PCRRepository{
 
@@ -36,8 +37,9 @@ abstract class PCRRepository{
         return withContext(Dispatchers.IO) {
             val buffer = ByteArray(256)
             var reqResult: ByteArray? = null
-            while (true) {
-                delay(500)
+            var iteration = 0
+            while (iteration<=20) {
+                delay(20)
                 if ((inputStream?.available() ?: 0) > 0) {
                     val bytes = inputStream?.read(buffer) ?: -1
                     if (bytes != -1) {
@@ -47,7 +49,7 @@ abstract class PCRRepository{
                         }
                         reqResult = if (reqResult != null) reqResult + result else result
                     }
-                } else break
+                } else iteration+=1
             }
             return@withContext reqResult
         }
@@ -78,15 +80,19 @@ abstract class PCRRepository{
             .toByteArray()
             .fromBytes(ByteOrder.Little)
 
+    private fun decodeFloat(recData: ByteArray, shift: Int = 8): Double{
+        val payload = recData.asList().subList(6, recData.size - shift).toByteArray()
+        return (payload.toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
+    }
+
     private fun encodeReqNum(): ByteArray{
         reqNum += 1
         return reqNum.toBytes(2, ByteOrder.Little)
     }
 
-    private fun splitAddressPulsar(address: String): ByteArray{
-        return address.toUInt(16).toInt().toBytes(4, ByteOrder.Big)
+    private fun splitAddressPulsar(pAddress: String): ByteArray{
+        return pAddress.toUInt(16).toInt().toBytes(4, ByteOrder.Big)
     }
-
 
     suspend fun getPCRAddress(): Int{
         val pAddress = splitAddressPulsar("0")
@@ -101,11 +107,41 @@ abstract class PCRRepository{
         throw CouldNotDetermineAddress(result.result.size, result.responseError)
     }
 
+    suspend fun getPCRWeights(_address: Int = address): Map<Int, Double?>{
+        val weights = mutableMapOf<Int, Double?>()
+        for(channel in WEIGHT_CHANNEL.indices){
+            weights[channel] = getPCRWeight(_address, channel)
+        }
+        var is10 = true
+        for(channel in 10..15){
+            if(weights[channel] != null){
+                is10 = false
+                break
+            }
+        }
+        if(is10){
+            return weights.filterKeys { it < 10 }
+        }
+        return weights
+    }
+
+    suspend fun getPCRWeight(_address: Int = 0, channel: Int): Double?{
+        val pAddress = splitAddressPulsar(_address.toString())
+        val pReqNum = encodeReqNum()
+        val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + READ_PARAM + reqLength + WEIGHT_CHANNEL[channel] + pReqNum).injectCRC()
+        val result = tryAttempts(request)
+        if(result.status == Status.Success && result.responseError == 0){
+            return decodeFloat(result.result)
+        }
+        return null
+    }
 
     sealed interface Status{
         object Success: Status
         object Failure: Status
     }
+
     class Result(val status: Status, val result: ByteArray, val responseError: Int)
 
     companion object{
