@@ -1,3 +1,3 @@
 package com.ibaevzz.pcr.data.exceptions
 
-class WifiTurnedOffException: Exception()
+class WifiTurnedOffException: Exception("Wifi был отключен")

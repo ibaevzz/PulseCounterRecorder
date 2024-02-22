@@ -5,10 +5,7 @@ import com.ibaevzz.pcr.PMSK_PNR
 import com.ibaevzz.pcr.data.exceptions.ConnectException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
-import com.ibaevzz.pcr.di.InputQualifier
-import com.ibaevzz.pcr.di.OutputQualifier
 import com.ibaevzz.pcr.di.wifi.WifiScope
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -19,10 +16,7 @@ import java.net.Socket
 import javax.inject.Inject
 
 @WifiScope
-class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager,
-                                            @InputQualifier private val inputDispatcher: CoroutineDispatcher,
-                                            @OutputQualifier private val outputDispatcher: CoroutineDispatcher)
-    : PCRRepository(inputDispatcher, outputDispatcher) {
+class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager): PCRRepository() {
 
     override var inputStream: InputStream? = null
     override var outputStream: OutputStream? = null

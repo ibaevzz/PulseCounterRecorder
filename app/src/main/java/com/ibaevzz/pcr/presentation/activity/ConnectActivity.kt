@@ -110,13 +110,13 @@ class ConnectActivity : AppCompatActivity() {
                     }
                     is WifiTurnedOffException -> {
                         withContext(Dispatchers.Main){
-                            Toast.makeText(this@ConnectActivity, "WIFI отключен", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ConnectActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@ConnectActivity, WifiConnectActivity::class.java))
                         }
                     }
                     is WrongWifi -> {
                         withContext(Dispatchers.Main){
-                            Toast.makeText(this@ConnectActivity, "Точка WIFI была изменена", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ConnectActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@ConnectActivity, WifiConnectActivity::class.java))
                         }
                     }

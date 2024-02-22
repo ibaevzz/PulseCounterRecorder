@@ -7,10 +7,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import com.ibaevzz.pcr.UUID
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
-import com.ibaevzz.pcr.di.InputQualifier
-import com.ibaevzz.pcr.di.OutputQualifier
 import com.ibaevzz.pcr.di.bluetooth.BluetoothScope
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -20,11 +17,7 @@ import java.util.*
 import javax.inject.Inject
 
 @BluetoothScope
-class BluetoothPCRRepository @Inject constructor(
-    bluetoothManager: BluetoothManager,
-    @InputQualifier private val inputDispatcher: CoroutineDispatcher,
-    @OutputQualifier private val outputDispatcher: CoroutineDispatcher)
-    : PCRRepository(inputDispatcher, outputDispatcher){
+class BluetoothPCRRepository @Inject constructor(bluetoothManager: BluetoothManager): PCRRepository(){
 
     override var outputStream: OutputStream? = null
     override var inputStream: InputStream? = null

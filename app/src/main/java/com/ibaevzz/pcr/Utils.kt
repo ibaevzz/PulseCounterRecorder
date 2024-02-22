@@ -28,7 +28,7 @@ fun String.stringToIp(): Int{
 }
 
 fun ByteArray.checkCRC(): Boolean{
-    return toList().subList(0, size-2).toByteArray().injectCRC()
+    return toList().subList(0, size-2).toByteArray().ibmCRC16()
         .contentEquals(toList().subList(size-2, size).toByteArray())
 }
 
@@ -48,13 +48,13 @@ private fun ByteArray.ibmCRC16(): ByteArray{
     return result.toInt().toBytes(2, ByteOrder.Little)
 }
 
-private fun ByteArray.injectCRC(): ByteArray{
+fun ByteArray.injectCRC(): ByteArray{
     return this + ibmCRC16()
 }
 
 fun Int.toBytes(size: Int, byteOrder: ByteOrder): ByteArray{
-    if(toString(16).length > size * 2) throw ToBytesException()
-    val hexString = toString(16).padStart(size * 2, '0')
+    if(toUInt().toString(16).length > size * 2) throw ToBytesException()
+    val hexString = toUInt().toString(16).padStart(size * 2, '0')
     var plus = true
     var ii: Int = when(byteOrder){
         ByteOrder.Big -> {
