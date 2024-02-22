@@ -3,6 +3,8 @@ package com.ibaevzz.pcr.data.repository
 import com.ibaevzz.pcr.*
 import com.ibaevzz.pcr.data.exceptions.ConnectException
 import com.ibaevzz.pcr.data.exceptions.CouldNotDetermineAddress
+import com.ibaevzz.pcr.data.exceptions.ReadChannelsException
+import com.ibaevzz.pcr.data.exceptions.ReadDeviceTypeException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -85,6 +87,30 @@ abstract class PCRRepository{
         return (payload.toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
     }
 
+    private fun decodeDeviceType(recData: ByteArray): String{
+        val payload = recData.asList().subList(6, recData.size - 4).toByteArray()
+        return DEV_TYPES[payload.fromBytes(ByteOrder.Little)]?:"Неизвестный прибор"
+    }
+
+    private fun decodeChannel(recData: ByteArray, mask: Int): Map<Int, Double>{
+        val channelBytes = recData.asList().subList(6, recData.size - 4).toByteArray()
+        val channelSlices = mutableListOf<ByteArray>()
+        val channelNumber = mutableListOf<Int>()
+        val values = mutableMapOf<Int, Double>()
+        for(i in 4 until channelBytes.size + 4 step 4){
+            channelSlices.add(channelBytes.asList().subList(i - 4, i).toByteArray())
+        }
+        for(i in 0 until 16){
+            if(mask and (1 shl i) == 1 shl i){
+                channelNumber.add(i)
+            }
+        }
+        for(i in channelSlices.indices){
+            values[channelNumber[i]] = (channelSlices[i].toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
+        }
+        return values
+    }
+
     private fun encodeReqNum(): ByteArray{
         reqNum += 1
         return reqNum.toBytes(2, ByteOrder.Little)
@@ -107,10 +133,22 @@ abstract class PCRRepository{
         throw CouldNotDetermineAddress(result.result.size, result.responseError)
     }
 
-    suspend fun getPCRWeights(_address: Int = address): Map<Int, Double?>{
+    suspend fun getDeviceType(_address: Int = address): String{
+        val pAddress = splitAddressPulsar(_address.toString())
+        val pReqNum = encodeReqNum()
+        val reqLength = ((pAddress + READ_PARAM + DEV_TYPE + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + READ_PARAM + reqLength + DEV_TYPE + pReqNum).injectCRC()
+        val result = tryAttempts(request)
+        if(result.status == Status.Success && result.responseError == 0){
+            return decodeDeviceType(result.result)
+        }
+        throw ReadDeviceTypeException()
+    }
+
+    suspend fun getChannelsWeights(_address: Int = address): Map<Int, Double?>{
         val weights = mutableMapOf<Int, Double?>()
         for(channel in WEIGHT_CHANNEL.indices){
-            weights[channel] = getPCRWeight(_address, channel)
+            weights[channel] = getChannelWeight(_address, channel)
         }
         var is10 = true
         for(channel in 10..15){
@@ -125,7 +163,7 @@ abstract class PCRRepository{
         return weights
     }
 
-    suspend fun getPCRWeight(_address: Int = 0, channel: Int): Double?{
+    suspend fun getChannelWeight(_address: Int = address, channel: Int): Double?{
         val pAddress = splitAddressPulsar(_address.toString())
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
@@ -135,6 +173,29 @@ abstract class PCRRepository{
             return decodeFloat(result.result)
         }
         return null
+    }
+
+    suspend fun getChannelsValues(_address: Int = address, channel: Int = -1): Map<Int, Double>{
+        val pReqNum = encodeReqNum()
+        val pAddress = splitAddressPulsar(_address.toString())
+        val mask = (if(channel == -1) 0xffff else 1 shl channel)
+        val pMask = mask.toBytes(4, ByteOrder.Little)
+        val reqLength = ((pAddress + READ_CH + pMask + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
+        val result = tryAttempts(request)
+        if(result.status == Status.Success && result.responseError == 0){
+            return decodeChannel(result.result, mask)
+        }else if(result.responseError == 2){
+            val mask10 = mask and 0x03ff
+            val pMask10 = mask10.toBytes(4, ByteOrder.Little)
+            val reqLength10 = ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+            val request10 = (pAddress + READ_CH + reqLength10 + pMask10 + pReqNum).injectCRC()
+            val result10 = tryAttempts(request10)
+            if(result10.status == Status.Success && result10.responseError == 0) {
+                return decodeChannel(result10.result, mask10)
+            }
+        }
+        throw ReadChannelsException()
     }
 
     sealed interface Status{
@@ -173,6 +234,10 @@ abstract class PCRRepository{
             byteArrayOf(0x2d, 0x00),
             byteArrayOf(0x2e, 0x00),
             byteArrayOf(0x2f, 0x00),
+        )
+
+        private val DEV_TYPES = mapOf(
+            424 to "Пульсар счетчик импульсов 10/16K v1"
         )
     }
 
