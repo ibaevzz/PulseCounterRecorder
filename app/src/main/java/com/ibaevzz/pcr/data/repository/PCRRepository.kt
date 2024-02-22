@@ -124,6 +124,31 @@ abstract class PCRRepository{
         return dateFormat.format(calendar.time)
     }
 
+    //TODO needs to be tested
+    private fun decodeArchive(recData: ByteArray, seconds: Int): Map<String, Double>{
+        val payload = recData.asList().subList(10, 16)
+        val calendar = Calendar.getInstance()
+        calendar.set(payload[0].toInt() + 2000,
+            payload[1].toInt() - 1,
+            payload[2].toInt(),
+            payload[3].toInt(),
+            payload[4].toInt(),
+            payload[5].toInt())
+        val date = calendar.time
+        val archive = recData.asList().subList(16, recData.size - 4)
+        val archiveSlices = mutableListOf<ByteArray>()
+        for(i in 4 until archive.size + 4 step 4){
+            archiveSlices.add(archive.subList(i - 4, i).toByteArray())
+        }
+        val result = mutableMapOf<String, Double>()
+        val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        for(slice in archiveSlices){
+            result[dateFormat.format(date)] = (slice.toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
+            date.time += seconds * 1000
+        }
+        return result
+    }
+
     private fun encodeReqNum(): ByteArray{
         reqNum += 1
         return reqNum.toBytes(2, ByteOrder.Little)
@@ -146,7 +171,7 @@ abstract class PCRRepository{
         val datesList = mutableListOf<Pair<Date, Date>>()
         if(count >= 2){
             var countSeconds = 0
-            var start = startDate
+            var start = startDate.clone() as Date
             for(i in 0 until count){
                 countSeconds += seconds * 19
                 val end = Date()
@@ -217,7 +242,7 @@ abstract class PCRRepository{
     suspend fun getChannelWeight(_address: Int = address, channel: Int): Double?{
         val pAddress = splitAddressPulsar(_address.toString())
         val pReqNum = encodeReqNum()
-        val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel - 1] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_PARAM + reqLength + WEIGHT_CHANNEL[channel] + pReqNum).injectCRC()
         val result = tryAttempts(request)
         if(result.status == Status.Success && result.responseError == 0){
@@ -229,7 +254,7 @@ abstract class PCRRepository{
     suspend fun getChannelsValues(_address: Int = address, channel: Int = -1): Map<Int, Double>{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
-        val mask = (if(channel == -1) 0xffff else 1 shl channel)
+        val mask = (if(channel == -1) 0xffff else 1 shl (channel - 1))
         val pMask = mask.toBytes(4, ByteOrder.Little)
         val reqLength = ((pAddress + READ_CH + pMask + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
@@ -277,6 +302,92 @@ abstract class PCRRepository{
         throw WriteDateException()
     }
 
+    //TODO needs to be tested
+    suspend fun readArchive(_address: Int = address, channel: Int, startDate: Date, endDate: Date, type: ArchiveTypes): Map<String, Double?>{
+        val pAddress = splitAddressPulsar(_address.toString())
+        val mask = (1 shl (channel-1)).toBytes(4, ByteOrder.Little)
+        val pType = type.type.toBytes(2, ByteOrder.Little)
+        val pDates = getRequestDates(startDate, endDate, type.seconds)
+        val archive = mutableMapOf<String, Double?>()
+        for(dates in pDates){
+            val pReqNum = encodeReqNum()
+            val pStartDate = encodeDate(dates.first)
+            val pEndDate = encodeDate(dates.second)
+            val pReqLength = ((pAddress + READ_ARCHIVE + mask + pType + pStartDate + pEndDate + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+            val request = (pAddress + READ_ARCHIVE + pReqLength + mask + pType + pStartDate + pEndDate + pReqNum).injectCRC()
+            val result = tryAttempts(request)
+            if(result.status == Status.Success && result.responseError == 0){
+                for(i in decodeArchive(result.result, type.seconds)){
+                    archive[i.key] = i.value
+                }
+            }else{
+                val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+                val start = dates.first.clone() as Date
+                while(start.time < dates.second.time) {
+                    archive[dateFormat.format(start)] = null
+                    start.time += type.seconds
+                }
+                archive[dateFormat.format(dates.second)] = null
+            }
+        }
+        return archive
+    }
+
+    //TODO протестировать и проверить работу при использовании 10-канального счетчика
+    suspend fun writeChannelsValues(_address: Int = address, values: Map<Int, Double>): Boolean{
+        val pReqNum = encodeReqNum()
+        val pAddress = splitAddressPulsar(_address.toString())
+        val pPayload = mutableListOf<Byte>()
+        var mask = 0
+        val sortedValues = values.toSortedMap()
+        if(0 in values.keys){
+            mask = 0xffff
+            for(i in 0..15){
+                for(ii in (values[0]?:0.0).toHex()){
+                    pPayload += ii
+                }
+            }
+        }else{
+            for(i in sortedValues.keys){
+                mask += 1 shl (i - 1)
+                for(ii in (sortedValues[i]?:0.0).toHex()){
+                    pPayload += ii
+                }
+            }
+        }
+        val pMask = mask.toBytes(4, ByteOrder.Little)
+        val pReqLength = ((pAddress + WRITE_CH + pMask + pPayload + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + WRITE_CH + pReqLength + pMask + pPayload + pReqNum).injectCRC()
+        val result = tryAttempts(request)
+        if(result.status == Status.Success && result.responseError == 0){
+            return true
+        }else if(result.responseError == 2 && 0 in values.keys){
+            val value = values[0]?:0.0
+            val values10 = mutableMapOf<Int, Double>()
+            for(i in 1..10){
+                values10[i] = value
+            }
+            val res = writeChannelsValues(_address, values10)
+            if(res) return true
+        }
+        throw WriteValuesException(sortedValues.keys.toList())
+    }
+
+    //TODO протестировать и проверить работу при использовании 10-канального счетчика
+    suspend fun writeChannelValue(_address: Int = address, channel: Int, value: Double): Boolean{
+        val pReqNum = encodeReqNum()
+        val pAddress = splitAddressPulsar(_address.toString())
+        val pMask = (1 shl (channel - 1)).toBytes(4, ByteOrder.Little)
+        val payload = value.toHex()
+        val pReqLength = ((pAddress + WRITE_CH + pMask + payload + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + WRITE_CH + pReqLength + pMask + payload + pReqNum).injectCRC()
+        val result = tryAttempts(request)
+        if(result.status == Status.Success && result.responseError == 0){
+            return true
+        }
+        throw WriteValuesException(listOf(channel))
+    }
+
     private sealed interface Status{
         object Success: Status
         object Failure: Status
@@ -288,6 +399,12 @@ abstract class PCRRepository{
         const val HOUR  = 60 * 60
         const val DAY   = 60 * 60 * 24
         const val MONTH = 60 * 60 * 24 * 30
+
+        enum class ArchiveTypes(val type: Int, val seconds: Int){
+            HOUR(1, PCRRepository.HOUR),
+            DAY(2, PCRRepository.DAY),
+            MONTH(3, PCRRepository.MONTH)
+        }
 
         private val READ_DATE    = byteArrayOf(0x04)
         private val WRITE_DATE   = byteArrayOf(0x05)
