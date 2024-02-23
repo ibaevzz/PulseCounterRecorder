@@ -196,7 +196,7 @@ abstract class PCRRepository{
         return pAddress.toUInt(16).toInt().toBytes(4, ByteOrder.Big)
     }
 
-    suspend fun getPCRAddress(): Int{
+    suspend fun getPCRAddress(): Int?{
         val pAddress = splitAddressPulsar("0")
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + DEV_ADDRESS + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
@@ -206,10 +206,10 @@ abstract class PCRRepository{
             address = decodeInteger(result.result)
             return address
         }
-        throw CouldNotDetermineAddress(result.result.size, result.responseError)
+        return null
     }
 
-    suspend fun getDeviceType(_address: Int = address): String{
+    suspend fun getDeviceType(_address: Int = address): String?{
         val pAddress = splitAddressPulsar(_address.toString())
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + DEV_TYPE + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
@@ -218,7 +218,7 @@ abstract class PCRRepository{
         if(result.status == Status.Success && result.responseError == 0){
             return decodeDeviceType(result.result)
         }
-        throw ReadDeviceTypeException()
+        return null
     }
 
     suspend fun getChannelsWeights(_address: Int = address): Map<Int, Double?>{
@@ -251,7 +251,7 @@ abstract class PCRRepository{
         return null
     }
 
-    suspend fun getChannelsValues(_address: Int = address, channel: Int = -1): Map<Int, Double>{
+    suspend fun getChannelsValues(_address: Int = address, channel: Int = -1): Map<Int, Double>?{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
         val mask = (if(channel == -1) 0xffff else 1 shl (channel - 1))
@@ -271,11 +271,11 @@ abstract class PCRRepository{
                 return decodeChannel(result10.result, mask10)
             }
         }
-        throw ReadChannelsException()
+        return null
     }
 
     //TODO needs to be tested
-    suspend fun getDate(_address: Int = address): String{
+    suspend fun getDate(_address: Int = address): String?{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
         val pReqLength = ((pAddress + READ_DATE + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
@@ -284,7 +284,7 @@ abstract class PCRRepository{
         if(result.status == Status.Success && result.responseError == 0){
             return decodeDate(result.result)
         }
-        throw ReadDateException()
+        return null
     }
 
     //TODO needs to be tested
@@ -299,7 +299,7 @@ abstract class PCRRepository{
         if(result.status == Status.Success && result.responseError == 0){
             return true
         }
-        throw WriteDateException()
+        return false
     }
 
     //TODO needs to be tested
@@ -370,7 +370,7 @@ abstract class PCRRepository{
             val res = writeChannelsValues(_address, values10)
             if(res) return true
         }
-        throw WriteValuesException(sortedValues.keys.toList())
+        return false
     }
 
     //TODO протестировать и проверить работу при использовании 10-канального счетчика
@@ -385,7 +385,35 @@ abstract class PCRRepository{
         if(result.status == Status.Success && result.responseError == 0){
             return true
         }
-        throw WriteValuesException(listOf(channel))
+        return false
+    }
+
+    suspend fun writeChannelsWeights(_address: Int = address, values: Map<Int, Double>): List<Boolean>{
+        val pAddress = splitAddressPulsar(_address.toString())
+        val pValues = values.toMutableMap()
+        if(0 in values.keys){
+            for(i in 1..16){
+                pValues[i] = values[0]?:0.0
+            }
+        }
+        val results = mutableListOf<Boolean>()
+        for(i in pValues){
+            results.add(writeChannelWeight(_address, i.key - 1, i.value))
+        }
+        return results
+    }
+
+    suspend fun writeChannelWeight(_address: Int = address, channel: Int, weight: Double): Boolean{
+        val pReqNum = encodeReqNum()
+        val pAddress = splitAddressPulsar(_address.toString())
+        val payload = weight.toHex()
+        val pReqLength = ((pAddress + WRITE_PARAM + WEIGHT_CHANNEL[channel - 1] + payload + pReqNum).size + 7).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + WRITE_PARAM + pReqLength + WEIGHT_CHANNEL[channel - 1] + payload + byteArrayOf(0, 0, 0, 0) + pReqNum).injectCRC()
+        val result = tryAttempts(request)
+        if(result.status == Status.Success && result.responseError == 0){
+            return true
+        }
+        return false
     }
 
     private sealed interface Status{
