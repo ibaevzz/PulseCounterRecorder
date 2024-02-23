@@ -40,9 +40,10 @@ abstract class PCRRepository{
             val buffer = ByteArray(256)
             var reqResult: ByteArray? = null
             var iteration = 0
-            while (iteration<=20) {
+            while (iteration <= 10) {
                 delay(20)
                 if ((inputStream?.available() ?: 0) > 0) {
+                    iteration -= 10
                     val bytes = inputStream?.read(buffer) ?: -1
                     if (bytes != -1) {
                         val result = ByteArray(bytes)
@@ -389,7 +390,6 @@ abstract class PCRRepository{
     }
 
     suspend fun writeChannelsWeights(_address: Int = address, values: Map<Int, Double>): List<Boolean>{
-        val pAddress = splitAddressPulsar(_address.toString())
         val pValues = values.toMutableMap()
         if(0 in values.keys){
             for(i in 1..16){

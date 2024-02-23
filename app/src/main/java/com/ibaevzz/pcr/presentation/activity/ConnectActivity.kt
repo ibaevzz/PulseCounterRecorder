@@ -112,12 +112,14 @@ class ConnectActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main){
                             Toast.makeText(this@ConnectActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@ConnectActivity, WifiConnectActivity::class.java))
+                            finish()
                         }
                     }
                     is WrongWifi -> {
                         withContext(Dispatchers.Main){
                             Toast.makeText(this@ConnectActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@ConnectActivity, WifiConnectActivity::class.java))
+                            finish()
                         }
                     }
                     else -> {
@@ -163,6 +165,7 @@ class ConnectActivity : AppCompatActivity() {
 
         binding.startWork.setOnClickListener{
             val menuIntent = Intent(this, MenuPCRActivity::class.java)
+            menuIntent.putExtra(IS_NETWORK_EXTRA, isNetwork?:false)
             startActivity(menuIntent)
         }
     }

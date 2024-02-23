@@ -13,4 +13,9 @@
     <string name="ip">IP:</string>
     <string name="port">Port:</string>
     <string name="contin">Далее</string>
+    <string name="address">Сетевой адрес:</string>
+    <string name="find_device">Найти прибор</string>
+    <string name="write_weight">Запись ЦИ / Дата-времени</string>
+    <string name="find_channel">Поиск канала</string>
+    <string name="read_archive">Чтение архивов</string>
 </resources>
