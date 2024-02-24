@@ -1,5 +1,6 @@
 package com.ibaevzz.pcr.presentation.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.CheckBox
@@ -8,8 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ibaevzz.pcr.databinding.WeightChannelViewBinding
 
-class WeightsChannelsAdapter(var weights: List<Double?>,
+class WeightsChannelsAdapter(var weights: Map<Int, Double?>,
                              val checkedChannels: MutableSet<Int> = mutableSetOf(),
+                             private val isEqu: Map<Int, Double?> = emptyMap(),
                              private val selectAll: (Boolean) -> Unit): RecyclerView.Adapter<WeightsChannelsAdapter.ChannelViewHolder>() {
 
     private var allCheckBox = mutableSetOf<CheckBox>()
@@ -30,6 +32,10 @@ class WeightsChannelsAdapter(var weights: List<Double?>,
         if(position in checkedChannels){
             holder.binding.isChecked.isChecked = true
         }
+        if(position in isEqu.keys && position in checkedChannels){
+            val color = if(isEqu[position] == weights[position]) Color.GREEN else Color.RED
+            holder.binding.weight.setTextColor(color)
+        }
         holder.binding.isChecked.setOnCheckedChangeListener{_, isChecked ->
             if(isChecked){
                 checkedChannels.add(position)
@@ -49,11 +55,15 @@ class WeightsChannelsAdapter(var weights: List<Double?>,
         }
         holder.binding.channel.text = (position + 1).toString()
         if(weightsMap.size < weights.size){
-            holder.binding.weight.setText((weights[position]?:"Ошибка").toString())
+            if(weights[position] != 0.0001){
+                holder.binding.weight.setText((weights[position]?:"Ошибка").toString())
+            }else{
+                holder.binding.weight.setText("0.0001")
+            }
         }
     }
 
-    fun getWeights(): Map<Int, Double>{
+    fun getWeightsMap(): Map<Int, Double>{
         val w = mutableMapOf<Int, Double>()
         for(i in checkedChannels){
             try {
@@ -66,6 +76,10 @@ class WeightsChannelsAdapter(var weights: List<Double?>,
         return w
     }
 
+    fun getAllWeights(): Map<Int, String>{
+        return weightsMap
+    }
+
     fun checkAll(isChecked: Boolean){
         if(isOneUncheck){
             isOneUncheck = false
@@ -74,7 +88,7 @@ class WeightsChannelsAdapter(var weights: List<Double?>,
         if(!isChecked){
             checkedChannels.removeIf{ it > -1 }
         }else{
-            for(i in weights.indices){
+            for(i in weights.keys.indices){
                 checkedChannels.add(i)
             }
         }

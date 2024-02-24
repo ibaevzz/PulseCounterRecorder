@@ -1,5 +1,6 @@
 package com.ibaevzz.pcr.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ibaevzz.pcr.data.repository.PCRRepository
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 class WriteWeightViewModel(private val PCRRepository: PCRRepository,
@@ -64,6 +66,13 @@ class WriteWeightViewModel(private val PCRRepository: PCRRepository,
                 _errorsSharedFlow.emit(ex)
                 null
             }
+        }
+    }
+
+    fun writeDate(date: Date? = Date()){
+        appScope.launch {
+            Log.i("zzz", PCRRepository.writeDate(date = date).toString())
+            Log.i("zzz", PCRRepository.getDate().toString())
         }
     }
 

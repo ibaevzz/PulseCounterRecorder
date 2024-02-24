@@ -1,10 +1,12 @@
 package com.ibaevzz.pcr.presentation.activity
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.view.View
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
@@ -18,23 +20,31 @@ import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import com.ibaevzz.pcr.presentation.adapter.WeightsChannelsAdapter
 import com.ibaevzz.pcr.presentation.viewmodel.WriteWeightViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 class WriteWeightActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWriteWeightBinding
 
+    private val date = Calendar.getInstance()
+
     @Inject
     lateinit var viewModelFactory: WriteWeightViewModel.Factory
     private val viewModel by lazy {
         ViewModelProvider(this, viewModelFactory)[WriteWeightViewModel::class.java]
     }
+    @Inject
+    lateinit var appScope: CoroutineScope
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,9 +59,15 @@ class WriteWeightActivity : AppCompatActivity() {
             BluetoothComponent.init(applicationContext).inject(this)
         }
 
+        binding.progress.visibility = View.VISIBLE
+        binding.frame.visibility = View.VISIBLE
         setAdapter()
 
-        binding.channels.layoutManager = GridLayoutManager(this, 2)
+        binding.channels.layoutManager = object: GridLayoutManager(this, 2){
+            override fun canScrollVertically(): Boolean {
+                return false
+            }
+        }
 
         binding.read.setOnClickListener{
             setAdapter()
@@ -68,9 +84,9 @@ class WriteWeightActivity : AppCompatActivity() {
         binding.group.setOnCheckedChangeListener{_, id ->
             val weight = findViewById<RadioButton>(id).text.toString().toDoubleOrNull()?:0.0
             if(binding.channels.adapter != null) {
-                val list = mutableListOf<Double>()
-                for(i in (binding.channels.adapter as WeightsChannelsAdapter).weights.indices){
-                    list.add(weight)
+                val list = mutableMapOf<Int, Double?>()
+                for(i in (binding.channels.adapter as WeightsChannelsAdapter).weights.keys){
+                    list[i] = weight
                 }
                 setAdapter(list)
             }
@@ -78,19 +94,69 @@ class WriteWeightActivity : AppCompatActivity() {
 
         binding.write.setOnClickListener{
             if(binding.channels.adapter != null){
-                viewModel.writeChannels((binding.channels.adapter as WeightsChannelsAdapter).getWeights())
+                binding.progress.visibility = View.VISIBLE
+                binding.frame.visibility = View.VISIBLE
+                viewModel.writeChannels((binding.channels.adapter as WeightsChannelsAdapter).getWeightsMap())
+                if(binding.syncWithPhone.isChecked){
+                    viewModel.writeDate()
+                }else{
+                    viewModel.writeDate(date.time)
+                }
+            }
+        }
+
+        binding.chooseDate.setOnClickListener{
+            val datePicker = DatePickerDialog(this)
+            datePicker.setOnDateSetListener{_, y, m, d ->
+                val timePicker = TimePickerDialog(this, { _, hourOfDay, minute ->
+                    date.set(y, m, d, hourOfDay, minute, 0)
+                    val dateFormat = SimpleDateFormat("dd.MM.yyyy  HH:mm", Locale.getDefault())
+                    binding.date.text = dateFormat.format(date.time)
+                }, 16, 20, true)
+                timePicker.show()
+            }
+            datePicker.show()
+        }
+
+        binding.check.setOnClickListener{
+            binding.progress.visibility = View.VISIBLE
+            binding.frame.visibility = View.VISIBLE
+            lifecycleScope.launch(Dispatchers.Default){
+                viewModel.getWeights()
+                    .onEach {
+                        if(binding.channels.adapter != null){
+                            val list = (binding.channels.adapter as WeightsChannelsAdapter).getAllWeights()
+                            val map = mutableMapOf<Int, Double?>()
+                            for(i in list.keys){
+                                try {
+                                    map[i] = list[i]?.toDouble()
+                                }catch(_: Exception){
+                                    map[i] = null
+                                }
+                            }
+                            binding.channels.adapter = WeightsChannelsAdapter(
+                                map,
+                                (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels,
+                                it)
+                            {
+                                binding.all.isChecked = it }
+                        }
+                        binding.progress.visibility = View.INVISIBLE
+                        binding.frame.visibility = View.INVISIBLE
+                    }.flowOn(Dispatchers.Main)
+                    .launchIn(appScope)
             }
         }
 
         lifecycleScope.launch(Dispatchers.Default){
             viewModel.writeResult.collect{
-                //TODO
-                for(i in it) {
-                    Log.i("zzz", i.key.toString() + "     " + i.value.toString())
+                withContext(Dispatchers.Main){
+                    binding.progress.visibility = View.INVISIBLE
+                    binding.frame.visibility = View.INVISIBLE
                 }
             }
         }
-        lifecycleScope.launch(Dispatchers.IO){
+        appScope.launch(Dispatchers.IO){
             val address = viewModel.getAddress()
             withContext(Dispatchers.Main){
                 binding.address.text = address.toString()
@@ -137,29 +203,33 @@ class WriteWeightActivity : AppCompatActivity() {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun setAdapter(list: List<Double>? = null){
+    private fun setAdapter(list: Map<Int, Double?>? = null){
         if(list != null){
             binding.channels.adapter = WeightsChannelsAdapter(list, (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels){
                 binding.all.isChecked = it
             }
             return
         }
+        binding.progress.visibility = View.VISIBLE
+        binding.frame.visibility = View.VISIBLE
         lifecycleScope.launch(Dispatchers.IO){
             viewModel.getWeights()
                 .flowOn(Dispatchers.IO)
-                .collect{
-                    withContext(Dispatchers.Main){
-                        if(binding.channels.adapter == null) {
-                            binding.channels.adapter = WeightsChannelsAdapter(it.values.toList()) {
-                                binding.all.isChecked = it
-                            }
-                        }else{
-                            binding.channels.adapter = WeightsChannelsAdapter(it.values.toList(), (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels){
-                                binding.all.isChecked = it
-                            }
+                .onEach {
+                    if(binding.channels.adapter == null) {
+                        binding.channels.adapter = WeightsChannelsAdapter(it) {
+                            binding.all.isChecked = it
+                        }
+                    }else{
+                        binding.channels.adapter = WeightsChannelsAdapter(it, (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels){
+                            binding.all.isChecked = it
                         }
                     }
+                    binding.progress.visibility = View.INVISIBLE
+                    binding.frame.visibility = View.INVISIBLE
                 }
+                .flowOn(Dispatchers.Main)
+                .launchIn(appScope)
         }
     }
 }

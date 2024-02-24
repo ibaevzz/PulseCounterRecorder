@@ -1,6 +1,5 @@
 package com.ibaevzz.pcr.data.repository
 
-import android.util.Log
 import com.ibaevzz.pcr.*
 import com.ibaevzz.pcr.data.exceptions.*
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +41,7 @@ abstract class PCRRepository{
             val buffer = ByteArray(256)
             var reqResult: ByteArray? = null
             var iteration = 0
-            while (iteration <= 7) {
+            while (iteration <= 10) {
                 delay(time)
                 if ((inputStream?.available() ?: 0) > 0) {
                     iteration -= 3
@@ -163,7 +162,7 @@ abstract class PCRRepository{
         return byteArrayOf((calendar.get(Calendar.YEAR) - 2000).toByte(),
             (calendar.get(Calendar.MONTH) + 1).toByte(),
             calendar.get(Calendar.DAY_OF_MONTH).toByte(),
-            calendar.get(Calendar.HOUR).toByte(),
+            calendar.get(Calendar.HOUR_OF_DAY).toByte(),
             calendar.get(Calendar.MINUTE).toByte(),
             calendar.get(Calendar.SECOND).toByte())
     }
@@ -210,7 +209,6 @@ abstract class PCRRepository{
                 address = decodeInteger(result.result)
                 return address
             }
-            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -225,7 +223,6 @@ abstract class PCRRepository{
             if (result.status == Status.Success && result.responseError == 0) {
                 return decodeDeviceType(result.result)
             }
-            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -263,7 +260,6 @@ abstract class PCRRepository{
                 is10 = true
                 return null
             }
-            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -479,9 +475,6 @@ abstract class PCRRepository{
             val result = tryAttempts(request, time)
             if (result.status == Status.Success && result.responseError == 0) {
                 return true
-            }
-            if(result.result.isEmpty()){
-                Log.i("zzz", "empty")
             }
         }
         return false

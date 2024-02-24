@@ -13,6 +13,7 @@ import com.ibaevzz.pcr.databinding.ActivityPcrMenuBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import com.ibaevzz.pcr.presentation.viewmodel.MenuPCRViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
@@ -23,6 +24,9 @@ import javax.inject.Inject
 class MenuPCRActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPcrMenuBinding
+
+    @Inject
+    lateinit var appScope: CoroutineScope
 
     @Inject
     lateinit var viewModelFactory: MenuPCRViewModel.Factory
@@ -44,7 +48,7 @@ class MenuPCRActivity : AppCompatActivity() {
         }
 
         binding.find.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.Default) {
+            appScope.launch(Dispatchers.Default) {
                 viewModel.getAddress()
                     .flowOn(Dispatchers.IO)
                     .collect {
