@@ -44,8 +44,8 @@ class WriteWeightViewModel(private val PCRRepository: PCRRepository,
             try {
                 val results = PCRRepository.writeChannelsWeights(values = weights)
                 val mapOfResult = mutableMapOf<Int, Boolean>()
-                for (i in results.indices) {
-                    mapOfResult[i + 1] = results[i]
+                for (i in results) {
+                    mapOfResult[i.key] = i.value
                 }
                 _writeResult.emit(mapOfResult)
             }catch(ex: Exception){

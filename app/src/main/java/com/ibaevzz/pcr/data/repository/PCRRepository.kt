@@ -1,5 +1,6 @@
 package com.ibaevzz.pcr.data.repository
 
+import android.util.Log
 import com.ibaevzz.pcr.*
 import com.ibaevzz.pcr.data.exceptions.*
 import kotlinx.coroutines.Dispatchers
@@ -27,24 +28,24 @@ abstract class PCRRepository{
     var is10 = false
     private val tryAttemptsMutex = Mutex()
 
-    private suspend fun sendMessage(message: ByteArray): ByteArray? {
+    private suspend fun sendMessage(message: ByteArray, time: Long = 20): ByteArray? {
         if(!checkConnection()) throw ConnectException()
         withContext(Dispatchers.IO) {
             outputStream?.write(message)
         }
-        return readMessage()
+        return readMessage(time)
     }
 
-    private suspend fun readMessage(): ByteArray? {
+    private suspend fun readMessage(time: Long = 20): ByteArray? {
         if(!checkConnection()) throw ConnectException()
         return withContext(Dispatchers.IO) {
             val buffer = ByteArray(256)
             var reqResult: ByteArray? = null
             var iteration = 0
-            while (iteration <= 10) {
-                delay(20)
+            while (iteration <= 7) {
+                delay(time)
                 if ((inputStream?.available() ?: 0) > 0) {
-                    iteration -= 10
+                    iteration -= 3
                     val bytes = inputStream?.read(buffer) ?: -1
                     if (bytes != -1) {
                         val result = ByteArray(bytes)
@@ -59,13 +60,13 @@ abstract class PCRRepository{
         }
     }
 
-    private suspend fun tryAttempts(data: ByteArray): Result{
+    private suspend fun tryAttempts(data: ByteArray, time: Long = 20): Result{
         var status: Status = Status.Failure
         var recData: ByteArray? = null
         var responseError = 0
         tryAttemptsMutex.lock()
         for(i in 0..2) {
-            recData = sendMessage(data)
+            recData = sendMessage(data, time)
             if (recData != null && recData.isNotEmpty()) {
                 if (recData.checkCRC()){
                     status = Status.Success
@@ -203,10 +204,13 @@ abstract class PCRRepository{
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + DEV_ADDRESS + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_PARAM + reqLength + DEV_ADDRESS + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            address = decodeInteger(result.result)
-            return address
+        for(time in times) {
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                address = decodeInteger(result.result)
+                return address
+            }
+            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -216,9 +220,12 @@ abstract class PCRRepository{
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + DEV_TYPE + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_PARAM + reqLength + DEV_TYPE + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return decodeDeviceType(result.result)
+        for(time in times) {
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return decodeDeviceType(result.result)
+            }
+            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -247,9 +254,16 @@ abstract class PCRRepository{
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_PARAM + reqLength + WEIGHT_CHANNEL[channel] + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return decodeFloat(result.result)
+        for(time in times) {
+            if(channel >= 10 && is10) break
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return decodeFloat(result.result)
+            }else if(result.responseError == 4){
+                is10 = true
+                return null
+            }
+            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -258,34 +272,43 @@ abstract class PCRRepository{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
         val mask = (if (channel == -1) 0xffff else 1 shl (channel - 1))
-        if (!is10) {
-            val pMask = mask.toBytes(4, ByteOrder.Little)
-            val reqLength =
-                ((pAddress + READ_CH + pMask + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
-            val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
-            val result = tryAttempts(request)
-            if (result.status == Status.Success && result.responseError == 0) {
-                return decodeChannel(result.result, mask)
-            } else if (result.responseError == 2) {
+        for(time in times) {
+            if (!is10) {
+                val pMask = mask.toBytes(4, ByteOrder.Little)
+                val reqLength =
+                    ((pAddress + READ_CH + pMask + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+                val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
+                val result = tryAttempts(request, time)
+                if (result.status == Status.Success && result.responseError == 0) {
+                    return decodeChannel(result.result, mask)
+                } else if (result.responseError == 2) {
+                    is10 = true
+                    val mask10 = mask and 0x03ff
+                    val pMask10 = mask10.toBytes(4, ByteOrder.Little)
+                    val reqLength10 =
+                        ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(
+                            1,
+                            ByteOrder.Little
+                        )
+                    val request10 =
+                        (pAddress + READ_CH + reqLength10 + pMask10 + pReqNum).injectCRC()
+                    val result10 = tryAttempts(request10, time)
+                    if (result10.status == Status.Success && result10.responseError == 0) {
+                        return decodeChannel(result10.result, mask10)
+                    }
+                }
+                if(result.result.isEmpty()) break
+            } else {
                 val mask10 = mask and 0x03ff
                 val pMask10 = mask10.toBytes(4, ByteOrder.Little)
                 val reqLength10 =
                     ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
                 val request10 = (pAddress + READ_CH + reqLength10 + pMask10 + pReqNum).injectCRC()
-                val result10 = tryAttempts(request10)
+                val result10 = tryAttempts(request10, time)
                 if (result10.status == Status.Success && result10.responseError == 0) {
                     return decodeChannel(result10.result, mask10)
                 }
-            }
-        }else{
-            val mask10 = mask and 0x03ff
-            val pMask10 = mask10.toBytes(4, ByteOrder.Little)
-            val reqLength10 =
-                ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
-            val request10 = (pAddress + READ_CH + reqLength10 + pMask10 + pReqNum).injectCRC()
-            val result10 = tryAttempts(request10)
-            if (result10.status == Status.Success && result10.responseError == 0) {
-                return decodeChannel(result10.result, mask10)
+                if(result10.result.isEmpty()) break
             }
         }
         return null
@@ -297,9 +320,12 @@ abstract class PCRRepository{
         val pAddress = splitAddressPulsar(_address.toString())
         val pReqLength = ((pAddress + READ_DATE + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_DATE + pReqLength + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return decodeDate(result.result)
+        for(time in times) {
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return decodeDate(result.result)
+            }
+            if(result.result.isEmpty()) break
         }
         return null
     }
@@ -312,9 +338,12 @@ abstract class PCRRepository{
         val pPayload = encodeDate(pDate)
         val pReqLength = ((pAddress + WRITE_DATE + pPayload + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + WRITE_DATE + pReqLength + pPayload + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return true
+        for(time in times) {
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return true
+            }
+            if(result.result.isEmpty()) break
         }
         return false
     }
@@ -332,19 +361,23 @@ abstract class PCRRepository{
             val pEndDate = encodeDate(dates.second)
             val pReqLength = ((pAddress + READ_ARCHIVE + mask + pType + pStartDate + pEndDate + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
             val request = (pAddress + READ_ARCHIVE + pReqLength + mask + pType + pStartDate + pEndDate + pReqNum).injectCRC()
-            val result = tryAttempts(request)
-            if(result.status == Status.Success && result.responseError == 0){
-                for(i in decodeArchive(result.result, type.seconds)){
-                    archive[i.key] = i.value
+            for(time in times) {
+                val result = tryAttempts(request, time)
+                if (result.status == Status.Success && result.responseError == 0) {
+                    for (i in decodeArchive(result.result, type.seconds)) {
+                        archive[i.key] = i.value
+                    }
+                    break
+                } else {
+                    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+                    val start = dates.first.clone() as Date
+                    while (start.time < dates.second.time) {
+                        archive[dateFormat.format(start)] = null
+                        start.time += type.seconds
+                    }
+                    archive[dateFormat.format(dates.second)] = null
                 }
-            }else{
-                val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-                val start = dates.first.clone() as Date
-                while(start.time < dates.second.time) {
-                    archive[dateFormat.format(start)] = null
-                    start.time += type.seconds
-                }
-                archive[dateFormat.format(dates.second)] = null
+                if(result.result.isEmpty()) break
             }
         }
         return archive
@@ -358,14 +391,15 @@ abstract class PCRRepository{
         var mask = 0
         val sortedValues = values.toSortedMap()
         if(0 in values.keys){
-            mask = 0xffff
-            for(i in 0..15){
+            mask = if(is10) 0x03ff else 0xffff
+            for(i in 0..if(is10) 9 else 15){
                 for(ii in (values[0]?:0.0).toHex()){
                     pPayload += ii
                 }
             }
         }else{
             for(i in sortedValues.keys){
+                if(i > 10 && is10) break
                 mask += 1 shl (i - 1)
                 for(ii in (sortedValues[i]?:0.0).toHex()){
                     pPayload += ii
@@ -375,17 +409,28 @@ abstract class PCRRepository{
         val pMask = mask.toBytes(4, ByteOrder.Little)
         val pReqLength = ((pAddress + WRITE_CH + pMask + pPayload + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + WRITE_CH + pReqLength + pMask + pPayload + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return true
-        }else if(result.responseError == 2 && 0 in values.keys){
-            val value = values[0]?:0.0
-            val values10 = mutableMapOf<Int, Double>()
-            for(i in 1..10){
-                values10[i] = value
+        for(time in times) {
+            if(!is10) {
+                val result = tryAttempts(request, time)
+                if (result.status == Status.Success && result.responseError == 0) {
+                    return true
+                } else if (result.responseError == 2 && 0 in values.keys) {
+                    is10 = true
+                    val value = values[0] ?: 0.0
+                    val values10 = mutableMapOf<Int, Double>()
+                    for (i in 1..10) {
+                        values10[i] = value
+                    }
+                    val res = writeChannelsValues(_address, values10)
+                    if (res) return true
+                }else if(result.result.isEmpty()){
+                    break
+                }
+            }else{
+                val result = tryAttempts(request, time)
+                if (result.status == Status.Success && result.responseError == 0) return true
+                if(result.result.isEmpty()) break
             }
-            val res = writeChannelsValues(_address, values10)
-            if(res) return true
         }
         return false
     }
@@ -398,36 +443,46 @@ abstract class PCRRepository{
         val payload = value.toHex()
         val pReqLength = ((pAddress + WRITE_CH + pMask + payload + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + WRITE_CH + pReqLength + pMask + payload + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return true
+        if(is10 && channel >= 10) return false
+        for(time in times) {
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return true
+            }
+            if(result.result.isEmpty()) break
         }
         return false
     }
 
-    suspend fun writeChannelsWeights(_address: Int = address, values: Map<Int, Double>): List<Boolean>{
+    suspend fun writeChannelsWeights(_address: Int = address, values: Map<Int, Double>): Map<Int, Boolean>{
         val pValues = values.toMutableMap()
         if(0 in values.keys){
             for(i in 1..16){
                 pValues[i] = values[0]?:0.0
             }
         }
-        val results = mutableListOf<Boolean>()
+        val results = mutableMapOf<Int, Boolean>()
         for(i in pValues){
-            results.add(writeChannelWeight(_address, i.key - 1, i.value))
+            results[i.key] = writeChannelWeight(_address, i.key - 1, i.value)
         }
         return results
     }
 
     suspend fun writeChannelWeight(_address: Int = address, channel: Int, weight: Double): Boolean{
+        if(is10 && channel>=10) return false
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
         val payload = weight.toHex()
         val pReqLength = ((pAddress + WRITE_PARAM + WEIGHT_CHANNEL[channel] + payload + pReqNum).size + 7).toBytes(1, ByteOrder.Little)
         val request = (pAddress + WRITE_PARAM + pReqLength + WEIGHT_CHANNEL[channel] + payload + byteArrayOf(0, 0, 0, 0) + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return true
+        for(time in times) {
+            val result = tryAttempts(request, time)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return true
+            }
+            if(result.result.isEmpty()){
+                Log.i("zzz", "empty")
+            }
         }
         return false
     }
@@ -483,6 +538,8 @@ abstract class PCRRepository{
         private val DEV_TYPES = mapOf(
             424 to "Пульсар счетчик импульсов 10/16K v1"
         )
+
+        private val times = listOf(20L, 50L, 100L)
     }
 
 }
