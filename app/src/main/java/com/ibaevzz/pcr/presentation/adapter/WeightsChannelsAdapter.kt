@@ -8,12 +8,12 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ibaevzz.pcr.databinding.WeightChannelViewBinding
 
-class WeightsChannelsAdapter(private val weights: List<Double>,
+class WeightsChannelsAdapter(var weights: List<Double?>,
+                             val checkedChannels: MutableSet<Int> = mutableSetOf(),
                              private val selectAll: (Boolean) -> Unit): RecyclerView.Adapter<WeightsChannelsAdapter.ChannelViewHolder>() {
 
-    private val checkedChannels = mutableSetOf<Int>()
-    private val allCheckBox = mutableSetOf<CheckBox>()
-    private val weightsMap = mutableMapOf<Int, String>()
+    private var allCheckBox = mutableSetOf<CheckBox>()
+    private var weightsMap = mutableMapOf<Int, String>()
     private var isOneUncheck = false
 
     class ChannelViewHolder(val binding: WeightChannelViewBinding): ViewHolder(binding.root)
@@ -27,6 +27,9 @@ class WeightsChannelsAdapter(private val weights: List<Double>,
 
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         allCheckBox.add(holder.binding.isChecked)
+        if(position in checkedChannels){
+            holder.binding.isChecked.isChecked = true
+        }
         holder.binding.isChecked.setOnCheckedChangeListener{_, isChecked ->
             if(isChecked){
                 checkedChannels.add(position)
@@ -46,7 +49,7 @@ class WeightsChannelsAdapter(private val weights: List<Double>,
         }
         holder.binding.channel.text = (position + 1).toString()
         if(weightsMap.size < weights.size){
-            holder.binding.weight.setText(weights[position].toString())
+            holder.binding.weight.setText((weights[position]?:"Ошибка").toString())
         }
     }
 

@@ -28,30 +28,29 @@ class WriteWeightViewModel(private val PCRRepository: PCRRepository,
     private val _writeResult = MutableSharedFlow<Map<Int, Boolean>>(extraBufferCapacity = 16)
     val writeResult = _writeResult.asSharedFlow()
 
-    fun getWeights() = flow {
-        emit(PCRRepository.getChannelsWeights())
-    }
+    private val _errorsSharedFlow = MutableSharedFlow<Exception>(replay = 1)
+    val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
 
-    fun getWeight(channel: Int) = flow {
-        emit(PCRRepository.getChannelWeight(channel = channel))
+    fun getWeights() = flow {
+        try {
+            emit(PCRRepository.getChannelsWeights())
+        }catch(ex: Exception){
+            _errorsSharedFlow.emit(ex)
+        }
     }
 
     fun writeChannels(weights: Map<Int, Double>){
         appScope.launch(Dispatchers.IO){
-            val results = PCRRepository.writeChannelsWeights(values = weights)
-            val mapOfResult = mutableMapOf<Int, Boolean>()
-            for(i in results.indices){
-                mapOfResult[i+1] = results[i]
+            try {
+                val results = PCRRepository.writeChannelsWeights(values = weights)
+                val mapOfResult = mutableMapOf<Int, Boolean>()
+                for (i in results.indices) {
+                    mapOfResult[i + 1] = results[i]
+                }
+                _writeResult.emit(mapOfResult)
+            }catch(ex: Exception){
+                _errorsSharedFlow.emit(ex)
             }
-            _writeResult.emit(mapOfResult)
-        }
-    }
-
-    fun writeChannel(channel: Int, weight: Double){
-        appScope.launch {
-            _writeResult.emit(
-                mapOf(channel to PCRRepository.writeChannelWeight(channel = channel, weight = weight))
-            )
         }
     }
 
@@ -59,7 +58,12 @@ class WriteWeightViewModel(private val PCRRepository: PCRRepository,
         return if(PCRRepository.address != 0){
             PCRRepository.address
         }else{
-            PCRRepository.getPCRAddress()
+            try {
+                PCRRepository.getPCRAddress()
+            }catch(ex: Exception){
+                _errorsSharedFlow.emit(ex)
+                null
+            }
         }
     }
 

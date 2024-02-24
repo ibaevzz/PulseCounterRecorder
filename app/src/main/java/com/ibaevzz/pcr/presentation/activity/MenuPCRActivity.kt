@@ -62,19 +62,19 @@ class MenuPCRActivity : AppCompatActivity() {
         binding.writeWeight.setOnClickListener{
             val writeWeightIntent = Intent(this, WriteWeightActivity::class.java)
             writeWeightIntent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)
-            startActivity(intent)
+            startActivity(writeWeightIntent)
         }
 
         binding.findChannel.setOnClickListener{
             val findChannelIntent = Intent(this, FindChannelActivity::class.java)
             findChannelIntent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)
-            startActivity(intent)
+            startActivity(findChannelIntent)
         }
 
         binding.readArchive.setOnClickListener{
             val readArchiveIntent = Intent(this, ArchiveActivity::class.java)
             readArchiveIntent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)
-            startActivity(intent)
+            startActivity(readArchiveIntent)
         }
 
         lifecycleScope.launch(Dispatchers.Default) {

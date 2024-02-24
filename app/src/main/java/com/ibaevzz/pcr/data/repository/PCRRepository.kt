@@ -24,6 +24,7 @@ abstract class PCRRepository{
 
     private var reqNum = 0
     var address = 0
+    var is10 = false
     private val tryAttemptsMutex = Mutex()
 
     private suspend fun sendMessage(message: ByteArray): ByteArray? {
@@ -225,9 +226,10 @@ abstract class PCRRepository{
     suspend fun getChannelsWeights(_address: Int = address): Map<Int, Double?>{
         val weights = mutableMapOf<Int, Double?>()
         for(channel in WEIGHT_CHANNEL.indices){
+            if(channel >= 10 && is10) break
             weights[channel] = getChannelWeight(_address, channel)
         }
-        var is10 = true
+        is10 = true
         for(channel in 10..15){
             if(weights[channel] != null){
                 is10 = false
@@ -243,7 +245,7 @@ abstract class PCRRepository{
     suspend fun getChannelWeight(_address: Int = address, channel: Int): Double?{
         val pAddress = splitAddressPulsar(_address.toString())
         val pReqNum = encodeReqNum()
-        val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel - 1] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+        val reqLength = ((pAddress + READ_PARAM + WEIGHT_CHANNEL[channel] + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
         val request = (pAddress + READ_PARAM + reqLength + WEIGHT_CHANNEL[channel] + pReqNum).injectCRC()
         val result = tryAttempts(request)
         if(result.status == Status.Success && result.responseError == 0){
@@ -255,20 +257,34 @@ abstract class PCRRepository{
     suspend fun getChannelsValues(_address: Int = address, channel: Int = -1): Map<Int, Double>?{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
-        val mask = (if(channel == -1) 0xffff else 1 shl (channel - 1))
-        val pMask = mask.toBytes(4, ByteOrder.Little)
-        val reqLength = ((pAddress + READ_CH + pMask + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
-        val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
-        val result = tryAttempts(request)
-        if(result.status == Status.Success && result.responseError == 0){
-            return decodeChannel(result.result, mask)
-        }else if(result.responseError == 2){
+        val mask = (if (channel == -1) 0xffff else 1 shl (channel - 1))
+        if (!is10) {
+            val pMask = mask.toBytes(4, ByteOrder.Little)
+            val reqLength =
+                ((pAddress + READ_CH + pMask + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+            val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
+            val result = tryAttempts(request)
+            if (result.status == Status.Success && result.responseError == 0) {
+                return decodeChannel(result.result, mask)
+            } else if (result.responseError == 2) {
+                val mask10 = mask and 0x03ff
+                val pMask10 = mask10.toBytes(4, ByteOrder.Little)
+                val reqLength10 =
+                    ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+                val request10 = (pAddress + READ_CH + reqLength10 + pMask10 + pReqNum).injectCRC()
+                val result10 = tryAttempts(request10)
+                if (result10.status == Status.Success && result10.responseError == 0) {
+                    return decodeChannel(result10.result, mask10)
+                }
+            }
+        }else{
             val mask10 = mask and 0x03ff
             val pMask10 = mask10.toBytes(4, ByteOrder.Little)
-            val reqLength10 = ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
+            val reqLength10 =
+                ((pAddress + READ_CH + pMask10 + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
             val request10 = (pAddress + READ_CH + reqLength10 + pMask10 + pReqNum).injectCRC()
             val result10 = tryAttempts(request10)
-            if(result10.status == Status.Success && result10.responseError == 0) {
+            if (result10.status == Status.Success && result10.responseError == 0) {
                 return decodeChannel(result10.result, mask10)
             }
         }
@@ -407,8 +423,8 @@ abstract class PCRRepository{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
         val payload = weight.toHex()
-        val pReqLength = ((pAddress + WRITE_PARAM + WEIGHT_CHANNEL[channel - 1] + payload + pReqNum).size + 7).toBytes(1, ByteOrder.Little)
-        val request = (pAddress + WRITE_PARAM + pReqLength + WEIGHT_CHANNEL[channel - 1] + payload + byteArrayOf(0, 0, 0, 0) + pReqNum).injectCRC()
+        val pReqLength = ((pAddress + WRITE_PARAM + WEIGHT_CHANNEL[channel] + payload + pReqNum).size + 7).toBytes(1, ByteOrder.Little)
+        val request = (pAddress + WRITE_PARAM + pReqLength + WEIGHT_CHANNEL[channel] + payload + byteArrayOf(0, 0, 0, 0) + pReqNum).injectCRC()
         val result = tryAttempts(request)
         if(result.status == Status.Success && result.responseError == 0){
             return true
