@@ -22,19 +22,19 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
     override var outputStream: OutputStream? = null
     private var socket: Socket? = null
     private val isConnect get() = socket?.isConnected?:false
-    private var address = "0.0.0.0"
+    private var macAddress = "0.0.0.0"
     private val connectMutex = Mutex()
     private val closeMutex = Mutex()
 
     override fun checkConnection(): Boolean {
         if(!wifiManager.isWifiEnabled) throw WifiTurnedOffException()
-        if(wifiManager.dhcpInfo.gateway != address.toInt()) throw WrongWifi()
+        if(wifiManager.dhcpInfo.gateway != macAddress.toInt()) throw WrongWifi()
         if(!wifiManager.connectionInfo.ssid.contains(PMSK_PNR)) throw WrongWifi()
         return isConnect
     }
 
     override suspend fun connect(address: String, port: String) {
-        this.address = address
+        this.macAddress = address
         if(checkConnection()) return
 
         withContext(Dispatchers.IO) {

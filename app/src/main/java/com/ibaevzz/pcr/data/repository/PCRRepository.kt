@@ -23,7 +23,7 @@ abstract class PCRRepository{
     abstract suspend fun closeConnection()
 
     private var reqNum = 0
-    private var address = 0
+    var address = 0
     private val tryAttemptsMutex = Mutex()
 
     private suspend fun sendMessage(message: ByteArray): ByteArray? {

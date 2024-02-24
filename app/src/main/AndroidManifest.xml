@@ -5,13 +5,12 @@
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         tools:remove="android:maxSdkVersion" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -19,35 +18,49 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.PCR">
-        <service android:name=".presentation.service.RssiService"
+        <activity
+            android:name=".presentation.activity.ArchiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.activity.FindChannelActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.activity.WriteWeightActivity"
             android:exported="false"/>
+
+        <service
+            android:name=".presentation.service.RssiService"
+            android:exported="false" />
+
         <activity
             android:name=".presentation.activity.MenuPCRActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.BluetoothSearchActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.WifiConnectActivity"
             android:exported="false"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.ConnectActivity"
             android:exported="false"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.ChooseConnectTypeActivity"
             android:exported="true"
             android:screenOrientation="portrait">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
     </application>
 
