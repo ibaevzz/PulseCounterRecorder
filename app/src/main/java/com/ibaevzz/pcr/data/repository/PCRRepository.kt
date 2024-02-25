@@ -127,7 +127,7 @@ abstract class PCRRepository{
     }
 
     //TODO needs to be tested
-    private fun decodeArchive(recData: ByteArray, seconds: Int): Map<String, Double?>{
+    private fun decodeArchive(recData: ByteArray, seconds: Int): Map<Date, Double?>{
         val payload = recData.asList().subList(10, 16)
         val calendar = Calendar.getInstance()
         calendar.set(payload[0].toInt() + 2000,
@@ -136,22 +136,22 @@ abstract class PCRRepository{
             payload[3].toInt(),
             payload[4].toInt(),
             payload[5].toInt())
-        val date = calendar.time
+        var date = calendar.time
         val archive = recData.asList().subList(16, recData.size - 4)
         val archiveSlices = mutableListOf<ByteArray>()
         for(i in 4 until archive.size + 4 step 4){
             archiveSlices.add(archive.subList(i - 4, i).toByteArray())
         }
-        val result = mutableMapOf<String, Double?>()
-        val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        val result = mutableMapOf<Date, Double?>()
         for(slice in archiveSlices){
             try {
-                result[dateFormat.format(date)] =
+                result[date] =
                     (slice.toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
             }catch (_: Exception){
-                result[dateFormat.format(date)] = null
+                result[date] = null
             }
-            date.time += seconds * 1000
+            date = date.clone() as Date
+            date.time += 1000 * seconds
         }
         return result
     }
@@ -344,12 +344,12 @@ abstract class PCRRepository{
     }
 
     //TODO исправить
-    suspend fun readArchive(_address: Int = address, channel: Int, startDate: Date, endDate: Date, type: ArchiveTypes): Map<String, Double?>{
+    suspend fun readArchive(_address: Int = address, channel: Int, startDate: Date, endDate: Date, type: ArchiveTypes): Map<Date, Double?>{
         val pAddress = splitAddressPulsar(_address.toString())
         val mask = (1 shl (channel-1)).toBytes(4, ByteOrder.Little)
         val pType = type.type.toBytes(2, ByteOrder.Little)
         val pDates = getRequestDates(startDate, endDate, type.seconds)
-        val archive = mutableMapOf<String, Double?>()
+        val archive = mutableMapOf<Date, Double?>()
         for(dates in pDates){
             val pReqNum = encodeReqNum()
             val pStartDate = encodeDate(dates.first)
@@ -367,10 +367,10 @@ abstract class PCRRepository{
                     val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
                     val start = dates.first.clone() as Date
                     while (start.time < dates.second.time) {
-                        archive[dateFormat.format(start)] = null
+                        archive[start] = null
                         start.time += type.seconds
                     }
-                    archive[dateFormat.format(dates.second)] = null
+                    archive[dates.second] = null
                 }
             }
         }

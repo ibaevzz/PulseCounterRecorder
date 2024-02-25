@@ -39,9 +39,9 @@ class ArchiveActivity : AppCompatActivity() {
     @Inject
     lateinit var appScope: CoroutineScope
 
-    private val hourArchive = mutableListOf<Pair<String, Double?>>()
-    private val dayArchive = mutableListOf<Pair<String, Double?>>()
-    private val monthArchive = mutableListOf<Pair<String, Double?>>()
+    private val hourArchive = mutableListOf<Pair<Date, Double?>>()
+    private val dayArchive = mutableListOf<Pair<Date, Double?>>()
+    private val monthArchive = mutableListOf<Pair<Date, Double?>>()
 
     private var endDateHour = Date()
     private var startDateHour = endDateHour.clone().also {
@@ -55,7 +55,7 @@ class ArchiveActivity : AppCompatActivity() {
 
     private var endDateMonth = Date()
     private var startDateMonth = endDateMonth.clone().also {
-        (it as Date).time = it.time - PCRRepository.MONTH * 20 * 1000
+        (it as Date).time = it.time - PCRRepository.MONTH.toLong() * 20L * 1000L
     } as Date
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +73,7 @@ class ArchiveActivity : AppCompatActivity() {
 
         binding.archive.layoutManager = LinearLayoutManager(this)
 
-        binding.read.setOnClickListener{
+        binding.read.setOnClickListener{view ->
             val channel = binding.channel.selectedItemId + 1
             val type = when(binding.group.checkedRadioButtonId){
                 R.id.hour -> {PCRRepository.Companion.ArchiveTypes.HOUR}
@@ -81,6 +81,7 @@ class ArchiveActivity : AppCompatActivity() {
                 R.id.month -> {PCRRepository.Companion.ArchiveTypes.MONTH}
                 else -> null
             }
+            view.isEnabled = false
             if(type != null){
                 when(type){
                     PCRRepository.Companion.ArchiveTypes.HOUR -> {
@@ -90,15 +91,17 @@ class ArchiveActivity : AppCompatActivity() {
                                     withContext(Dispatchers.Main){
                                         startDateHour.time -= PCRRepository.HOUR * 1000 * 20
                                         endDateHour.time -= PCRRepository.HOUR * 1000 * 20
-                                        val list = mutableListOf<Pair<String, Double?>>()
+                                        val list = mutableListOf<Pair<Date, Double?>>()
                                         for(i in it) {
                                             list.add(Pair(i.key, i.value))
                                         }
-                                        list.reverse()
                                         for(i in list){
                                             hourArchive.add(i)
                                         }
+                                        hourArchive.sortBy { it.first.time }
+                                        hourArchive.reverse()
                                         binding.archive.adapter = ArchiveAdapter(hourArchive)
+                                        view.isEnabled = true
                                     }
                                 }
                         }
@@ -110,15 +113,17 @@ class ArchiveActivity : AppCompatActivity() {
                                     withContext(Dispatchers.Main){
                                         startDateDay.time -= PCRRepository.DAY * 20 * 1000
                                         endDateDay.time -= PCRRepository.DAY * 1000 * 20
-                                        val list = mutableListOf<Pair<String, Double?>>()
+                                        val list = mutableListOf<Pair<Date, Double?>>()
                                         for(i in it) {
                                             list.add(Pair(i.key, i.value))
                                         }
-                                        list.reverse()
                                         for(i in list){
                                             dayArchive.add(i)
                                         }
+                                        dayArchive.sortBy { it.first.time }
+                                        dayArchive.reverse()
                                         binding.archive.adapter = ArchiveAdapter(dayArchive)
+                                        view.isEnabled = true
                                     }
                                 }
                         }
@@ -128,22 +133,26 @@ class ArchiveActivity : AppCompatActivity() {
                             viewModel.getArchive(channel.toInt(), startDateMonth, endDateMonth, type)
                                 .collect {
                                     withContext(Dispatchers.Main){
-                                        startDateMonth.time -= PCRRepository.MONTH * 1000 * 20
-                                        endDateMonth.time -= PCRRepository.MONTH * 1000 * 20
-                                        val list = mutableListOf<Pair<String, Double?>>()
+                                        startDateMonth.time -= PCRRepository.MONTH.toLong() * 1000L * 20L
+                                        endDateMonth.time -= PCRRepository.MONTH.toLong() * 1000L * 20L
+                                        val list = mutableListOf<Pair<Date, Double?>>()
                                         for(i in it) {
                                             list.add(Pair(i.key, i.value))
                                         }
-                                        list.reverse()
                                         for(i in list){
                                             monthArchive.add(i)
                                         }
+                                        monthArchive.sortBy { it.first.time }
+                                        monthArchive.reverse()
                                         binding.archive.adapter = ArchiveAdapter(monthArchive)
+                                        view.isEnabled = true
                                     }
                                 }
                         }
                     }
                 }
+            }else{
+                view.isEnabled = true
             }
         }
 
@@ -172,6 +181,7 @@ class ArchiveActivity : AppCompatActivity() {
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {
+                            binding.read.isEnabled = true
                             Toast.makeText(this@ArchiveActivity, "Ошибка чтения или записи", Toast.LENGTH_SHORT)
                                 .show()
                         }

@@ -5,8 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ibaevzz.pcr.databinding.ArchiveViewBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
-class ArchiveAdapter(val map: List<Pair<String, Double?>>): RecyclerView.Adapter<ArchiveAdapter.ArchiveViewHolder>() {
+class ArchiveAdapter(val map: List<Pair<Date, Double?>>): RecyclerView.Adapter<ArchiveAdapter.ArchiveViewHolder>() {
     class ArchiveViewHolder(val binding: ArchiveViewBinding): ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArchiveViewHolder {
@@ -18,7 +20,8 @@ class ArchiveAdapter(val map: List<Pair<String, Double?>>): RecyclerView.Adapter
 
     override fun onBindViewHolder(holder: ArchiveViewHolder, position: Int) {
         holder.binding.num.text = (position + 1).toString()
-        holder.binding.date.text = map[position].first
+        val format = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+        holder.binding.date.text = format.format(map[position].first)
         holder.binding.value.text = map[position].second.toString()
     }
 
