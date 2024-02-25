@@ -22,10 +22,6 @@ class FindChannelViewModel(private val PCRRepository: PCRRepository, ): ViewMode
         emit(PCRRepository.getChannelWeight(channel = channel))
     }
 
-    fun getWeights(channel: Int) = flow{
-        emit(PCRRepository.getChannelsWeights())
-    }
-
     fun getValue(channel: Int) = flow{
         emit(PCRRepository.getChannelsValues(channel = channel))
     }
@@ -39,10 +35,6 @@ class FindChannelViewModel(private val PCRRepository: PCRRepository, ): ViewMode
             emit(PCRRepository.address)
         }
         emit(PCRRepository.getPCRAddress())
-    }
-
-    fun writeValue(channel: Int, value: Double) = flow {
-        emit(PCRRepository.writeChannelValue(channel = channel, value = value))
     }
 
     fun writeValues(values: Map<Int, Double>) = flow {

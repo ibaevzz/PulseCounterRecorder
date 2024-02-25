@@ -379,17 +379,17 @@ abstract class PCRRepository{
         val pPayload = mutableListOf<Byte>()
         var mask = 0
         val sortedValues = values.toSortedMap()
-        if(0 in values.keys){
+        if(-1 in values.keys){
             mask = if(is10) 0x03ff else 0xffff
             for(i in 0..if(is10) 9 else 15){
-                for(ii in (values[0]?:0.0).toHex()){
+                for(ii in (values[-1]?:0.0).toHex()){
                     pPayload += ii
                 }
             }
         }else{
             for(i in sortedValues.keys){
-                if(i > 10 && is10) break
-                mask += 1 shl (i - 1)
+                if(i >= 10 && is10) break
+                mask += 1 shl i
                 for(ii in (sortedValues[i]?:0.0).toHex()){
                     pPayload += ii
                 }
@@ -403,11 +403,11 @@ abstract class PCRRepository{
                 val result = tryAttempts(request, time)
                 if (result.status == Status.Success && result.responseError == 0) {
                     return true
-                } else if (result.responseError == 2 && 0 in values.keys) {
+                } else if (result.responseError == 2 && -1 in values.keys) {
                     is10 = true
                     val value = values[0] ?: 0.0
                     val values10 = mutableMapOf<Int, Double>()
-                    for (i in 1..10) {
+                    for (i in 0..9) {
                         values10[i] = value
                     }
                     val res = writeChannelsValues(_address, values10)

@@ -55,6 +55,8 @@ class FindChannelActivity : AppCompatActivity() {
             if(binding.start.text == "Стоп"){
                 isStop = true
                 binding.start.text = "Старт"
+                binding.check.isEnabled = true
+                binding.write.isEnabled = true
                 return@setOnClickListener
             }else{
                 isStop = false
@@ -65,9 +67,11 @@ class FindChannelActivity : AppCompatActivity() {
                 var isFind = false
                 if (count > 0 && binding.channels.adapter != null) {
                     (it as Button).text = "Стоп"
+                    binding.check.isEnabled = false
+                    binding.write.isEnabled = false
                     appScope.launch(Dispatchers.IO) {
+                        val adapter = binding.channels.adapter as ValuesChannelsAdapter
                         while  (!isFind && !isStop) {
-                            val adapter = binding.channels.adapter as ValuesChannelsAdapter
                             for (i in 0 until adapter.getSize()) {
                                 if(!isStop) {
                                     withContext(Dispatchers.Main) {
@@ -94,12 +98,49 @@ class FindChannelActivity : AppCompatActivity() {
                                             }
                                         }
                                     }
+                                }else{
+                                    withContext(Dispatchers.Main){
+                                        adapter.unwatch()
+                                    }
+                                    break
                                 }
                             }
-                            withContext(Dispatchers.Main){
-                                adapter.unwatch()
-                            }
                         }
+                        withContext(Dispatchers.Main){
+                            binding.check.isEnabled = true
+                            binding.write.isEnabled = true
+                        }
+                    }
+                }
+            }
+        }
+
+        binding.write.setOnClickListener{
+            binding.progress.visibility = View.VISIBLE
+            binding.frame.visibility = View.VISIBLE
+            appScope.launch {
+                viewModel.writeValues((binding.channels.adapter as ValuesChannelsAdapter).getValuesMap()).collect{
+                    withContext(Dispatchers.Main){
+                        binding.progress.visibility = View.INVISIBLE
+                        binding.frame.visibility = View.INVISIBLE
+                    }
+                }
+            }
+        }
+
+        binding.check.setOnClickListener{
+            binding.progress.visibility = View.VISIBLE
+            binding.frame.visibility = View.VISIBLE
+            appScope.launch(Dispatchers.IO){
+                viewModel.getValues().collect{
+                    binding.progress.visibility = View.INVISIBLE
+                    binding.frame.visibility = View.INVISIBLE
+
+                    oldValues = it?.toMutableMap() ?: mutableMapOf()
+                    val adapter = binding.channels.adapter as ValuesChannelsAdapter
+                    val newAdapter = ValuesChannelsAdapter(it, adapter.getChecked(), adapter.getAllValues())
+                    withContext(Dispatchers.Main) {
+                        binding.channels.adapter = newAdapter
                     }
                 }
             }
