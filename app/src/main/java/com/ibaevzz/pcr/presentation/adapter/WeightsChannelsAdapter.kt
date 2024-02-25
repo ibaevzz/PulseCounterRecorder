@@ -7,7 +7,7 @@ import android.widget.CheckBox
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import com.ibaevzz.pcr.databinding.WeightChannelViewBinding
+import com.ibaevzz.pcr.databinding.ChannelViewBinding
 
 class WeightsChannelsAdapter(var weights: Map<Int, Double?>,
                              val checkedChannels: MutableSet<Int> = mutableSetOf(),
@@ -18,10 +18,10 @@ class WeightsChannelsAdapter(var weights: Map<Int, Double?>,
     private var weightsMap = mutableMapOf<Int, String>()
     private var isOneUncheck = false
 
-    class ChannelViewHolder(val binding: WeightChannelViewBinding): ViewHolder(binding.root)
+    class ChannelViewHolder(val binding: ChannelViewBinding): ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
-        val binding = WeightChannelViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ChannelViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ChannelViewHolder(binding)
     }
 

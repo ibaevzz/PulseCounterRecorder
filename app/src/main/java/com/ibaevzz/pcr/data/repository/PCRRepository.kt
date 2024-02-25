@@ -267,7 +267,7 @@ abstract class PCRRepository{
     suspend fun getChannelsValues(_address: Int = address, channel: Int = -1): Map<Int, Double>?{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
-        val mask = (if (channel == -1) 0xffff else 1 shl (channel - 1))
+        val mask = (if (channel == -1) 0xffff else 1 shl channel)
         for(time in times) {
             if (!is10) {
                 val pMask = mask.toBytes(4, ByteOrder.Little)
@@ -293,7 +293,6 @@ abstract class PCRRepository{
                         return decodeChannel(result10.result, mask10)
                     }
                 }
-                if(result.result.isEmpty()) break
             } else {
                 val mask10 = mask and 0x03ff
                 val pMask10 = mask10.toBytes(4, ByteOrder.Little)
@@ -304,13 +303,11 @@ abstract class PCRRepository{
                 if (result10.status == Status.Success && result10.responseError == 0) {
                     return decodeChannel(result10.result, mask10)
                 }
-                if(result10.result.isEmpty()) break
             }
         }
         return null
     }
 
-    //TODO needs to be tested
     suspend fun getDate(_address: Int = address): String?{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
@@ -321,12 +318,10 @@ abstract class PCRRepository{
             if (result.status == Status.Success && result.responseError == 0) {
                 return decodeDate(result.result)
             }
-            if(result.result.isEmpty()) break
         }
         return null
     }
 
-    //TODO needs to be tested
     suspend fun writeDate(_address: Int = address, date: Date?): Boolean{
         val pDate = date?:Date()
         val pReqNum = encodeReqNum()
@@ -339,7 +334,6 @@ abstract class PCRRepository{
             if (result.status == Status.Success && result.responseError == 0) {
                 return true
             }
-            if(result.result.isEmpty()) break
         }
         return false
     }
@@ -373,7 +367,6 @@ abstract class PCRRepository{
                     }
                     archive[dateFormat.format(dates.second)] = null
                 }
-                if(result.result.isEmpty()) break
             }
         }
         return archive
@@ -419,13 +412,10 @@ abstract class PCRRepository{
                     }
                     val res = writeChannelsValues(_address, values10)
                     if (res) return true
-                }else if(result.result.isEmpty()){
-                    break
                 }
             }else{
                 val result = tryAttempts(request, time)
                 if (result.status == Status.Success && result.responseError == 0) return true
-                if(result.result.isEmpty()) break
             }
         }
         return false
@@ -445,7 +435,6 @@ abstract class PCRRepository{
             if (result.status == Status.Success && result.responseError == 0) {
                 return true
             }
-            if(result.result.isEmpty()) break
         }
         return false
     }

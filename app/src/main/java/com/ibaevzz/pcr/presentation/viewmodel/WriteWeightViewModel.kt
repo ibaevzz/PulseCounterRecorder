@@ -71,8 +71,7 @@ class WriteWeightViewModel(private val PCRRepository: PCRRepository,
 
     fun writeDate(date: Date? = Date()){
         appScope.launch {
-            Log.i("zzz", PCRRepository.writeDate(date = date).toString())
-            Log.i("zzz", PCRRepository.getDate().toString())
+            PCRRepository.writeDate(date = date).toString()
         }
     }
 
