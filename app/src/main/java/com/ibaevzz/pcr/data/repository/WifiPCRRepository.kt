@@ -22,7 +22,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
     override var outputStream: OutputStream? = null
     private var socket: Socket? = null
     private val isConnect get() = socket?.isConnected?:false
-    private var macAddress = "0.0.0.0"
+    private var macAddress = "0"
     private val connectMutex = Mutex()
     private val closeMutex = Mutex()
 

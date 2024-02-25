@@ -3,6 +3,8 @@ package com.ibaevzz.pcr.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ibaevzz.pcr.data.repository.PCRRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
@@ -18,27 +20,51 @@ class FindChannelViewModel(private val PCRRepository: PCRRepository, ): ViewMode
         }
     }
 
+    private val _errorsSharedFlow = MutableSharedFlow<Exception>(replay = 1)
+    val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
+
     fun getWeight(channel: Int) = flow{
-        emit(PCRRepository.getChannelWeight(channel = channel))
+        try {
+            emit(PCRRepository.getChannelWeight(channel = channel))
+        }catch (ex: Exception){
+            _errorsSharedFlow.emit(ex)
+        }
     }
 
     fun getValue(channel: Int) = flow{
-        emit(PCRRepository.getChannelsValues(channel = channel))
+        try {
+            emit(PCRRepository.getChannelsValues(channel = channel))
+        }catch (ex: Exception){
+            _errorsSharedFlow.emit(ex)
+        }
     }
 
     fun getValues() = flow{
-        emit(PCRRepository.getChannelsValues())
+        try {
+            emit(PCRRepository.getChannelsValues())
+        }catch (ex: Exception){
+            _errorsSharedFlow.emit(ex)
+        }
     }
 
     fun getAddress() = flow{
-        if(PCRRepository.address!=0){
-            emit(PCRRepository.address)
+        try {
+            if (PCRRepository.address != 0) {
+                emit(PCRRepository.address)
+            }else {
+                emit(PCRRepository.getPCRAddress())
+            }
+        }catch (ex: Exception){
+            _errorsSharedFlow.emit(ex)
         }
-        emit(PCRRepository.getPCRAddress())
     }
 
     fun writeValues(values: Map<Int, Double>) = flow {
-        emit(PCRRepository.writeChannelsValues(values = values))
+        try {
+            emit(PCRRepository.writeChannelsValues(values = values))
+        }catch (ex: Exception){
+            _errorsSharedFlow.emit(ex)
+        }
     }
 
 }

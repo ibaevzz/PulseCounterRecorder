@@ -127,7 +127,7 @@ abstract class PCRRepository{
     }
 
     //TODO needs to be tested
-    private fun decodeArchive(recData: ByteArray, seconds: Int): Map<String, Double>{
+    private fun decodeArchive(recData: ByteArray, seconds: Int): Map<String, Double?>{
         val payload = recData.asList().subList(10, 16)
         val calendar = Calendar.getInstance()
         calendar.set(payload[0].toInt() + 2000,
@@ -142,10 +142,15 @@ abstract class PCRRepository{
         for(i in 4 until archive.size + 4 step 4){
             archiveSlices.add(archive.subList(i - 4, i).toByteArray())
         }
-        val result = mutableMapOf<String, Double>()
+        val result = mutableMapOf<String, Double?>()
         val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
         for(slice in archiveSlices){
-            result[dateFormat.format(date)] = (slice.toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
+            try {
+                result[dateFormat.format(date)] =
+                    (slice.toDouble() * 10000000).roundToLong().toDouble() / 10000000.0
+            }catch (_: Exception){
+                result[dateFormat.format(date)] = null
+            }
             date.time += seconds * 1000
         }
         return result
@@ -338,7 +343,7 @@ abstract class PCRRepository{
         return false
     }
 
-    //TODO needs to be tested
+    //TODO исправить
     suspend fun readArchive(_address: Int = address, channel: Int, startDate: Date, endDate: Date, type: ArchiveTypes): Map<String, Double?>{
         val pAddress = splitAddressPulsar(_address.toString())
         val mask = (1 shl (channel-1)).toBytes(4, ByteOrder.Little)

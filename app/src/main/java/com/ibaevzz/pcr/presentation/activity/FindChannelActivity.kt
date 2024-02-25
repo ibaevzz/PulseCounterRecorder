@@ -1,17 +1,24 @@
 package com.ibaevzz.pcr.presentation.activity
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
+import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
+import com.ibaevzz.pcr.data.exceptions.WrongWifi
 import com.ibaevzz.pcr.databinding.ActivityFindChannelBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import com.ibaevzz.pcr.presentation.adapter.ValuesChannelsAdapter
 import com.ibaevzz.pcr.presentation.viewmodel.FindChannelViewModel
 import kotlinx.coroutines.*
+import java.io.IOException
 import javax.inject.Inject
 
 class FindChannelActivity : AppCompatActivity() {
@@ -86,10 +93,7 @@ class FindChannelActivity : AppCompatActivity() {
                                     if(value != -1.0 && weight != -1.0) {
                                         withContext(Dispatchers.Main) {
                                             adapter.setValue(i, value)
-                                            if (((oldValues[i]
-                                                    ?: -1.0) <= value - count * weight) && (oldValues[i]
-                                                    ?: -1.0) >= value - (count + 0.5) * weight
-                                            ) {
+                                            if (((oldValues[i] ?: -1.0) <= value - (count - 0.2) * weight)) {
                                                 adapter.setFind(i)
                                                 oldValues[i] = value
                                                 isFind = true
@@ -162,6 +166,45 @@ class FindChannelActivity : AppCompatActivity() {
 
                     oldValues = it?.toMutableMap() ?: mutableMapOf()
                     binding.channels.adapter = ValuesChannelsAdapter(it, emptySet())
+                }
+            }
+        }
+
+        lifecycleScope.launch(Dispatchers.IO){
+            viewModel.errorsSharedFlow.collect{
+                when(it){
+                    is IOException -> {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@FindChannelActivity, "Ошибка чтения или записи", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                    is BluetoothTurnedOffException -> {
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@FindChannelActivity, it.message, Toast.LENGTH_SHORT)
+                                .show()
+                            val intent = Intent(this@FindChannelActivity, ConnectActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                    is WifiTurnedOffException -> {
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@FindChannelActivity, it.message, Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@FindChannelActivity, WifiConnectActivity::class.java))
+                            finish()
+                        }
+                    }
+                    is WrongWifi -> {
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@FindChannelActivity, it.message, Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@FindChannelActivity, WifiConnectActivity::class.java))
+                            finish()
+                        }
+                    }
+                    else -> {
+                        throw it
+                    }
                 }
             }
         }
