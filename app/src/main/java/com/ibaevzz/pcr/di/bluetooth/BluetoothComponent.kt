@@ -17,6 +17,7 @@ interface BluetoothComponent {
     fun inject(writeWeightActivity: WriteWeightActivity)
     fun inject(findChannelActivity: FindChannelActivity)
     fun inject(archiveActivity: ArchiveActivity)
+    fun inject(channelActivity: ChannelActivity)
 
     @Subcomponent.Builder
     interface Builder{

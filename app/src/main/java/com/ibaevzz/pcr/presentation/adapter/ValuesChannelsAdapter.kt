@@ -8,15 +8,16 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.ibaevzz.pcr.R
-import com.ibaevzz.pcr.databinding.ChannelViewBinding
+import com.ibaevzz.pcr.databinding.ChannelButtonViewBinding
 
 class ValuesChannelsAdapter(values: Map<Int, Double>?,
                             isChecked: Set<Int>,
-                            var isEqu: Map<Int, Double>? = null)
+                            var isEqu: Map<Int, Double>? = null,
+                            private val toChannel: (Int) -> Unit)
 
     : RecyclerView.Adapter<ValuesChannelsAdapter.ValueViewHolder>() {
 
-    class ValueViewHolder(val binding: ChannelViewBinding): ViewHolder(binding.root)
+    class ValueViewHolder(val binding: ChannelButtonViewBinding): ViewHolder(binding.root)
 
     private val values = values?.toMutableMap()
     private val isChecked = isChecked.toMutableSet()
@@ -26,7 +27,7 @@ class ValuesChannelsAdapter(values: Map<Int, Double>?,
     private var strValues = mutableMapOf<Int, String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ValueViewHolder {
-        val binding = ChannelViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ChannelButtonViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ValueViewHolder(binding)
     }
 
@@ -66,6 +67,8 @@ class ValuesChannelsAdapter(values: Map<Int, Double>?,
         if(holder.binding.channel.text.toString().toInt() == position + 1) {
             if (position == find) {
                 holder.binding.root.setBackgroundColor(Color.GREEN)
+            }else{
+                holder.binding.root.setBackgroundColor(Color.TRANSPARENT)
             }
             if (position == oldWatch) {
                 oldWatch = -1
@@ -75,8 +78,15 @@ class ValuesChannelsAdapter(values: Map<Int, Double>?,
                 holder.binding.root.setBackgroundColor(Color.GRAY)
                 oldWatch = watch
                 watch = -1
+            }else{
+                holder.binding.root.setBackgroundColor(Color.TRANSPARENT)
             }
         }
+
+        holder.binding.channelButton.setOnClickListener{
+            toChannel(position)
+        }
+        holder.binding.channelButton.text = "Канал ${position + 1}"
     }
 
     fun setFind(channel: Int){

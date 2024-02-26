@@ -142,7 +142,7 @@ class FindChannelActivity : AppCompatActivity() {
 
                     oldValues = it?.toMutableMap() ?: mutableMapOf()
                     val adapter = binding.channels.adapter as ValuesChannelsAdapter
-                    val newAdapter = ValuesChannelsAdapter(it, adapter.getChecked(), adapter.getAllValues())
+                    val newAdapter = ValuesChannelsAdapter(it, adapter.getChecked(), adapter.getAllValues(), toChannel = ::toChannel)
                     withContext(Dispatchers.Main) {
                         binding.channels.adapter = newAdapter
                     }
@@ -165,7 +165,7 @@ class FindChannelActivity : AppCompatActivity() {
                     binding.frame.visibility = View.INVISIBLE
 
                     oldValues = it?.toMutableMap() ?: mutableMapOf()
-                    binding.channels.adapter = ValuesChannelsAdapter(it, emptySet())
+                    binding.channels.adapter = ValuesChannelsAdapter(it, emptySet(), toChannel = ::toChannel)
                 }
             }
         }
@@ -208,7 +208,14 @@ class FindChannelActivity : AppCompatActivity() {
                 }
             }
         }
+    }
 
+    private fun toChannel(channel: Int){
+        val intent = Intent(this, ChannelActivity::class.java)
+        intent.putExtra(ChannelActivity.CHANNEL_EXTRA, channel)
+        val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
+        intent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)
+        startActivity(intent)
     }
 
     override fun onDestroy() {
