@@ -12,6 +12,7 @@ import javax.inject.Inject
 
 class BluetoothSearchViewModel(private val searchDeviceRepository: SearchDeviceRepository): ViewModel(){
 
+    @Suppress("UNCHECKED_CAST")
     class Factory @Inject constructor(private val searchDeviceRepository: SearchDeviceRepository)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

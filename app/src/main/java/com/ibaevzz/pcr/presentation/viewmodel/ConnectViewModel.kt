@@ -14,6 +14,7 @@ import javax.inject.Inject
 class ConnectViewModel(private val PCRRepository: PCRRepository,
                        private val appScope: CoroutineScope): ViewModel() {
 
+    @Suppress("UNCHECKED_CAST")
     class Factory @Inject constructor(private val PCRRepository: PCRRepository,
                                       private val appScope: CoroutineScope)
         : ViewModelProvider.Factory{
@@ -47,7 +48,7 @@ class ConnectViewModel(private val PCRRepository: PCRRepository,
         }
     }
 
-    fun closeConnection(){
+    private fun closeConnection(){
         appScope.launch{
             try {
                 PCRRepository.closeConnection()

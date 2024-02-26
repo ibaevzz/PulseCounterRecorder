@@ -10,6 +10,7 @@ import javax.inject.Inject
 
 class FindChannelViewModel(private val PCRRepository: PCRRepository, ): ViewModel(){
 
+    @Suppress("UNCHECKED_CAST")
     class Factory @Inject constructor(private val PCRRepository: PCRRepository)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

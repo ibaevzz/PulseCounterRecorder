@@ -126,8 +126,7 @@ abstract class PCRRepository{
         return dateFormat.format(calendar.time)
     }
 
-    //TODO needs to be tested
-    private fun decodeArchive(recData: ByteArray, seconds: Int): Map<Date, Double?>{
+    private fun decodeArchive(recData: ByteArray, seconds: Long): Map<Date, Double?>{
         val payload = recData.asList().subList(10, 16)
         val calendar = Calendar.getInstance()
         calendar.set(payload[0].toInt() + 2000,
@@ -151,7 +150,14 @@ abstract class PCRRepository{
                 result[date] = null
             }
             date = date.clone() as Date
-            date.time += 1000 * seconds
+            if(seconds == ArchiveTypes.MONTH.seconds) {
+                val c = Calendar.getInstance()
+                c.time = date
+                c.add(Calendar.MONTH, 1)
+                date.time = c.time.time
+            }else {
+                date.time += 1000 * seconds
+            }
         }
         return result
     }
@@ -172,17 +178,17 @@ abstract class PCRRepository{
             calendar.get(Calendar.SECOND).toByte())
     }
 
-    private fun getRequestDates(startDate: Date, endDate: Date, seconds: Int): List<Pair<Date, Date>>{
+    private fun getRequestDates(startDate: Date, endDate: Date, seconds: Long): List<Pair<Date, Date>>{
         val delta = (endDate.time - startDate.time) / 1000
         val count = ceil((delta.toDouble() / seconds.toDouble()) / 19).toInt()
         val datesList = mutableListOf<Pair<Date, Date>>()
         if(count >= 2){
-            var countSeconds = 0
+            var countSeconds = 0L
             var start = startDate.clone() as Date
             for(i in 0 until count){
                 countSeconds += seconds * 19
                 val end = Date()
-                end.time = seconds.toLong() * 19 * 1000L + start.time
+                end.time = seconds * 19 * 1000L + start.time
                 if(end.time >= endDate.time){
                     val dates = Pair(start, endDate)
                     datesList.add(dates)
@@ -343,7 +349,6 @@ abstract class PCRRepository{
         return false
     }
 
-    //TODO исправить
     suspend fun readArchive(_address: Int = address, channel: Int, startDate: Date, endDate: Date, type: ArchiveTypes): Map<Date, Double?>{
         val pAddress = splitAddressPulsar(_address.toString())
         val mask = (1 shl (channel-1)).toBytes(4, ByteOrder.Little)
@@ -363,21 +368,12 @@ abstract class PCRRepository{
                         archive[i.key] = i.value
                     }
                     break
-                } else {
-                    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
-                    val start = dates.first.clone() as Date
-                    while (start.time < dates.second.time) {
-                        archive[start] = null
-                        start.time += type.seconds
-                    }
-                    archive[dates.second] = null
                 }
             }
         }
         return archive
     }
 
-    //TODO протестировать и проверить работу при использовании 10-канального счетчика
     suspend fun writeChannelsValues(_address: Int = address, values: Map<Int, Double>): Boolean{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
@@ -426,7 +422,6 @@ abstract class PCRRepository{
         return false
     }
 
-    //TODO протестировать и проверить работу при использовании 10-канального счетчика
     suspend fun writeChannelValue(_address: Int = address, channel: Int, value: Double): Boolean{
         val pReqNum = encodeReqNum()
         val pAddress = splitAddressPulsar(_address.toString())
@@ -482,11 +477,11 @@ abstract class PCRRepository{
 
     companion object{
 
-        const val HOUR  = 60 * 60
-        const val DAY   = 60 * 60 * 24
-        const val MONTH = 60 * 60 * 24 * 30
+        const val HOUR  = 60L * 60L
+        const val DAY   = 60L * 60L * 24L
+        const val MONTH = 60L * 60L * 24L * 30L
 
-        enum class ArchiveTypes(val type: Int, val seconds: Int){
+        enum class ArchiveTypes(val type: Int, val seconds: Long){
             HOUR(1, PCRRepository.HOUR),
             DAY(2, PCRRepository.DAY),
             MONTH(3, PCRRepository.MONTH)

@@ -12,8 +12,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MenuPCRViewModel(private val PCRRepository: PCRRepository,
-                       private val appScope: CoroutineScope): ViewModel(){
+                       appScope: CoroutineScope): ViewModel(){
 
+    @Suppress("UNCHECKED_CAST")
     class Factory @Inject constructor(private val PCRRepository: PCRRepository,
                                       private val appScope: CoroutineScope)
         : ViewModelProvider.Factory{

@@ -67,10 +67,11 @@ class WifiConnectActivity: AppCompatActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun updateIpAndHost(){
         val name = wifiManager.connectionInfo.ssid
         if(name!=null && name.contains(PMSK_PNR)){
-            val ip = wifiManager.dhcpInfo.gateway?:0
+            val ip = wifiManager.dhcpInfo.gateway
             if(ip!=0){
                 binding.ip.setText(ip.ipToString())
                 binding.port.setText(PORT.toString())

@@ -83,6 +83,7 @@ class WriteWeightActivity : AppCompatActivity() {
 
         binding.group.setOnCheckedChangeListener{_, id ->
             val weight = findViewById<RadioButton>(id).text.toString().toDoubleOrNull()?:0.0
+            binding.all.isChecked = true
             if(binding.channels.adapter != null) {
                 val list = mutableMapOf<Int, Double?>()
                 for(i in (binding.channels.adapter as WeightsChannelsAdapter).weights.keys){
@@ -137,10 +138,7 @@ class WriteWeightActivity : AppCompatActivity() {
                             binding.channels.adapter = WeightsChannelsAdapter(
                                 map,
                                 (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels,
-                                it)
-                            {
-                                binding.all.isChecked = it }
-                        }
+                                it) { isAll -> binding.all.isChecked = isAll } }
                         binding.progress.visibility = View.INVISIBLE
                         binding.frame.visibility = View.INVISIBLE
                     }.flowOn(Dispatchers.Main)
@@ -215,13 +213,13 @@ class WriteWeightActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO){
             viewModel.getWeights()
                 .flowOn(Dispatchers.IO)
-                .onEach {
+                .onEach {result ->
                     if(binding.channels.adapter == null) {
-                        binding.channels.adapter = WeightsChannelsAdapter(it) {
+                        binding.channels.adapter = WeightsChannelsAdapter(result) {
                             binding.all.isChecked = it
                         }
                     }else{
-                        binding.channels.adapter = WeightsChannelsAdapter(it, (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels){
+                        binding.channels.adapter = WeightsChannelsAdapter(result, (binding.channels.adapter as WeightsChannelsAdapter).checkedChannels){
                             binding.all.isChecked = it
                         }
                     }

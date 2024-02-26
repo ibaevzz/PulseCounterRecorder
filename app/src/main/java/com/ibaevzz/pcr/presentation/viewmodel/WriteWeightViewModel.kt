@@ -1,6 +1,5 @@
 package com.ibaevzz.pcr.presentation.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ibaevzz.pcr.data.repository.PCRRepository
@@ -16,6 +15,7 @@ import javax.inject.Inject
 class WriteWeightViewModel(private val PCRRepository: PCRRepository,
                            private val appScope: CoroutineScope): ViewModel(){
 
+    @Suppress("UNCHECKED_CAST")
     class Factory @Inject constructor(private val PCRRepository: PCRRepository,
                                       private val appScope: CoroutineScope)
         : ViewModelProvider.Factory{

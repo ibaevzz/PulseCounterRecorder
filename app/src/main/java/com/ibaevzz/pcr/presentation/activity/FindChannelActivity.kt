@@ -58,7 +58,7 @@ class FindChannelActivity : AppCompatActivity() {
             }
         }
 
-        binding.start.setOnClickListener{
+        binding.start.setOnClickListener{view ->
             if(binding.start.text == "Стоп"){
                 isStop = true
                 binding.start.text = "Старт"
@@ -73,7 +73,7 @@ class FindChannelActivity : AppCompatActivity() {
                 var value = -1.0
                 var isFind = false
                 if (count > 0 && binding.channels.adapter != null) {
-                    (it as Button).text = "Стоп"
+                    (view as Button).text = "Стоп"
                     binding.check.isEnabled = false
                     binding.write.isEnabled = false
                     appScope.launch(Dispatchers.IO) {

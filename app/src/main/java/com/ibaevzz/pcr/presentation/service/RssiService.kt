@@ -74,6 +74,7 @@ class RssiService: Service(){
     class RssiBinder(val rssi: SharedFlow<Short>): Binder()
 
     inner class RssiBroadcastReceiver: BroadcastReceiver(){
+        @Suppress("DEPRECATION")
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == BluetoothDevice.ACTION_FOUND){
                 val value = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, 0)

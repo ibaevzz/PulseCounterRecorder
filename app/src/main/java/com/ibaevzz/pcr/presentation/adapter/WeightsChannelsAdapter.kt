@@ -1,5 +1,6 @@
 package com.ibaevzz.pcr.presentation.adapter
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ class WeightsChannelsAdapter(var weights: Map<Int, Double?>,
 
     override fun getItemCount() = weights.size
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         allCheckBox.add(holder.binding.isChecked)
         if(position in checkedChannels){

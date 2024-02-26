@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
+import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
@@ -39,9 +41,9 @@ class ArchiveActivity : AppCompatActivity() {
     @Inject
     lateinit var appScope: CoroutineScope
 
-    private val hourArchive = mutableListOf<Pair<Date, Double?>>()
-    private val dayArchive = mutableListOf<Pair<Date, Double?>>()
-    private val monthArchive = mutableListOf<Pair<Date, Double?>>()
+    private var hourArchive = mutableListOf<Pair<Date, Double?>>()
+    private var dayArchive = mutableListOf<Pair<Date, Double?>>()
+    private var monthArchive = mutableListOf<Pair<Date, Double?>>()
 
     private var endDateHour = Date()
     private var startDateHour = endDateHour.clone().also {
@@ -55,7 +57,7 @@ class ArchiveActivity : AppCompatActivity() {
 
     private var endDateMonth = Date()
     private var startDateMonth = endDateMonth.clone().also {
-        (it as Date).time = it.time - PCRRepository.MONTH.toLong() * 20L * 1000L
+        (it as Date).time = it.time - PCRRepository.MONTH * 20L * 1000L
     } as Date
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,6 +75,46 @@ class ArchiveActivity : AppCompatActivity() {
 
         binding.archive.layoutManager = LinearLayoutManager(this)
 
+        binding.group.setOnCheckedChangeListener{_, id ->
+            when(id){
+                R.id.hour -> {
+                    binding.archive.adapter = ArchiveAdapter(hourArchive)
+                }
+                R.id.day -> {
+                    binding.archive.adapter = ArchiveAdapter(dayArchive)
+                }
+                R.id.month -> {
+                    binding.archive.adapter = ArchiveAdapter(monthArchive)
+                }
+            }
+        }
+
+        binding.channel.onItemSelectedListener = object: OnItemSelectedListener{
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                hourArchive.clear()
+                dayArchive.clear()
+                monthArchive.clear()
+
+                endDateHour = Date()
+                startDateHour = endDateHour.clone().also {
+                    (it as Date).time = it.time - PCRRepository.HOUR * 20 * 1000
+                } as Date
+
+                endDateDay = Date()
+                startDateDay = endDateDay.clone().also {
+                    (it as Date).time = it.time - PCRRepository.DAY * 20 * 1000
+                } as Date
+
+                endDateMonth = Date()
+                startDateMonth = endDateMonth.clone().also {
+                    (it as Date).time = it.time - PCRRepository.MONTH * 20 * 1000
+                } as Date
+
+                binding.archive.adapter = ArchiveAdapter(emptyList())
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
         binding.read.setOnClickListener{view ->
             val channel = binding.channel.selectedItemId + 1
             val type = when(binding.group.checkedRadioButtonId){
@@ -89,8 +131,6 @@ class ArchiveActivity : AppCompatActivity() {
                             viewModel.getArchive(channel.toInt(), startDateHour, endDateHour, type)
                                 .collect {
                                     withContext(Dispatchers.Main){
-                                        startDateHour.time -= PCRRepository.HOUR * 1000 * 20
-                                        endDateHour.time -= PCRRepository.HOUR * 1000 * 20
                                         val list = mutableListOf<Pair<Date, Double?>>()
                                         for(i in it) {
                                             list.add(Pair(i.key, i.value))
@@ -100,6 +140,10 @@ class ArchiveActivity : AppCompatActivity() {
                                         }
                                         hourArchive.sortBy { it.first.time }
                                         hourArchive.reverse()
+
+                                        endDateHour.time = hourArchive[hourArchive.size - 1].first.time - PCRRepository.HOUR * 1000
+                                        startDateHour.time = endDateHour.time - PCRRepository.HOUR * 1000 * 19
+
                                         binding.archive.adapter = ArchiveAdapter(hourArchive)
                                         view.isEnabled = true
                                     }
@@ -111,8 +155,6 @@ class ArchiveActivity : AppCompatActivity() {
                             viewModel.getArchive(channel.toInt(), startDateDay, endDateDay, type)
                                 .collect {
                                     withContext(Dispatchers.Main){
-                                        startDateDay.time -= PCRRepository.DAY * 20 * 1000
-                                        endDateDay.time -= PCRRepository.DAY * 1000 * 20
                                         val list = mutableListOf<Pair<Date, Double?>>()
                                         for(i in it) {
                                             list.add(Pair(i.key, i.value))
@@ -122,6 +164,10 @@ class ArchiveActivity : AppCompatActivity() {
                                         }
                                         dayArchive.sortBy { it.first.time }
                                         dayArchive.reverse()
+
+                                        endDateDay.time = dayArchive[dayArchive.size - 1].first.time - PCRRepository.DAY * 1000
+                                        startDateDay.time = endDateDay.time - PCRRepository.DAY * 1000 * 19
+
                                         binding.archive.adapter = ArchiveAdapter(dayArchive)
                                         view.isEnabled = true
                                     }
@@ -133,8 +179,6 @@ class ArchiveActivity : AppCompatActivity() {
                             viewModel.getArchive(channel.toInt(), startDateMonth, endDateMonth, type)
                                 .collect {
                                     withContext(Dispatchers.Main){
-                                        startDateMonth.time -= PCRRepository.MONTH.toLong() * 1000L * 20L
-                                        endDateMonth.time -= PCRRepository.MONTH.toLong() * 1000L * 20L
                                         val list = mutableListOf<Pair<Date, Double?>>()
                                         for(i in it) {
                                             list.add(Pair(i.key, i.value))
@@ -144,6 +188,10 @@ class ArchiveActivity : AppCompatActivity() {
                                         }
                                         monthArchive.sortBy { it.first.time }
                                         monthArchive.reverse()
+
+                                        endDateMonth.time = monthArchive[monthArchive.size - 1].first.time - PCRRepository.MONTH * 1000
+                                        startDateMonth.time = endDateMonth.time - PCRRepository.MONTH * 1000 * 19
+
                                         binding.archive.adapter = ArchiveAdapter(monthArchive)
                                         view.isEnabled = true
                                     }

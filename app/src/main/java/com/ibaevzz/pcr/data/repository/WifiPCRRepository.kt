@@ -26,6 +26,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
     private val connectMutex = Mutex()
     private val closeMutex = Mutex()
 
+    @Suppress("DEPRECATION")
     override fun checkConnection(): Boolean {
         if(!wifiManager.isWifiEnabled) throw WifiTurnedOffException()
         if(wifiManager.dhcpInfo.gateway != macAddress.toInt()) throw WrongWifi()

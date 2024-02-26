@@ -1,5 +1,6 @@
 package com.ibaevzz.pcr.presentation.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ class ArchiveAdapter(val map: List<Pair<Date, Double?>>): RecyclerView.Adapter<A
 
     override fun getItemCount() = map.size
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ArchiveViewHolder, position: Int) {
         holder.binding.num.text = (position + 1).toString()
         val format = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())

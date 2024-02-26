@@ -32,7 +32,8 @@ class ValuesChannelsAdapter(values: Map<Int, Double>?,
 
     override fun getItemCount(): Int = values?.size?:10
 
-    @SuppressLint("ResourceType")
+    @Suppress("DEPRECATION")
+    @SuppressLint("ResourceType", "SetTextI18n")
     override fun onBindViewHolder(holder: ValueViewHolder, position: Int) {
         holder.binding.channel.text = (position + 1).toString()
         holder.binding.weight.setText((values?.get(position) ?:"Ошибка").toString())
