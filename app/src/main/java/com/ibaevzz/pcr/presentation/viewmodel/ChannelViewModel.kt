@@ -70,7 +70,8 @@ class ChannelViewModel(private val PCRRepository: PCRRepository): ViewModel() {
 
     fun getValue(channel: Int) = flow{
         try{
-            emit(PCRRepository.getChannelsValues(channel = channel))
+            val value = PCRRepository.getChannelsValues(channel = channel)
+            emit(value?.get(channel))
         }catch (ex: Exception){
             _errorsSharedFlow.emit(ex)
         }

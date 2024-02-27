@@ -56,6 +56,8 @@ class ValuesChannelsAdapter(values: Map<Int, Double>?,
                     val color =
                         if (isEqu!![position] == values?.get(position)) Color.GREEN else Color.RED
                     holder.binding.weight.setTextColor(color)
+                }else{
+                    holder.binding.weight.setTextColor(holder.binding.root.context.resources.getColor(R.color.black))
                 }
             }
         }

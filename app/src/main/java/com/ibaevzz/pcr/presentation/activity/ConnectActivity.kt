@@ -1,12 +1,12 @@
 package com.ibaevzz.pcr.presentation.activity
 
 import android.bluetooth.BluetoothAdapter
-import android.content.ComponentName
+//import android.content.ComponentName
 import android.content.Intent
-import android.content.ServiceConnection
+//import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.IBinder
+//import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
@@ -17,7 +17,7 @@ import com.ibaevzz.pcr.data.exceptions.WrongWifi
 import com.ibaevzz.pcr.databinding.ActivityConnectBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
-import com.ibaevzz.pcr.presentation.service.RssiService
+//import com.ibaevzz.pcr.presentation.service.RssiService
 import com.ibaevzz.pcr.presentation.viewmodel.ConnectViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,16 +50,16 @@ class ConnectActivity : AppCompatActivity() {
         }
     }
 
-    private val serviceConnection = object: ServiceConnection{
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            lifecycleScope.launch(Dispatchers.Default){
-                (service as RssiService.RssiBinder).rssi.collect{
-                    viewModel.sendRssi(it)
-                }
-            }
-        }
-        override fun onServiceDisconnected(name: ComponentName?) {}
-    }
+//    private val serviceConnection = object: ServiceConnection{
+//        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+//            lifecycleScope.launch(Dispatchers.Default){
+//                (service as RssiService.RssiBinder).rssi.collect{
+//                    viewModel.sendRssi(it)
+//                }
+//            }
+//        }
+//        override fun onServiceDisconnected(name: ComponentName?) {}
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,9 +75,9 @@ class ConnectActivity : AppCompatActivity() {
             BluetoothComponent.init(applicationContext).inject(this)
             startConnection(address)
 
-            val rssiServiceIntent = Intent(this, RssiService::class.java)
-            rssiServiceIntent.putExtra(ADDRESS_EXTRA, address)
-            bindService(rssiServiceIntent, serviceConnection, BIND_AUTO_CREATE)
+//            val rssiServiceIntent = Intent(this, RssiService::class.java)
+//            rssiServiceIntent.putExtra(ADDRESS_EXTRA, address)
+//            bindService(rssiServiceIntent, serviceConnection, BIND_AUTO_CREATE)
 
         }else if(isNetwork!! && ip != null && port != null){
             WifiComponent.init(applicationContext).inject(this)
@@ -89,11 +89,11 @@ class ConnectActivity : AppCompatActivity() {
     }
 
     private fun startConnection(address: String, port: String = ""){
-        if(!isNetwork!!) {
-            lifecycleScope.launch {
-                viewModel.rssi.collect {}//TODO
-            }
-        }
+//        if(!isNetwork!!) {
+//            lifecycleScope.launch {
+//                viewModel.rssi.collect {}
+//            }
+//        }
         lifecycleScope.launch(Dispatchers.Default) {
             viewModel.errorsSharedFlow.collect{
                 when(it){
@@ -175,10 +175,10 @@ class ConnectActivity : AppCompatActivity() {
         registerBluetoothEnabled.launch(bluetoothEnabledIntent)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if(!isNetwork!!) {
-            unbindService(serviceConnection)
-        }
-    }
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        if(!isNetwork!!) {
+//            unbindService(serviceConnection)
+//        }
+//    }
 }

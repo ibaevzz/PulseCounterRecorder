@@ -41,6 +41,8 @@ class FindChannelActivity : AppCompatActivity() {
         binding = ActivityFindChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Поиск канала"
+
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
 
         if(isNetwork){

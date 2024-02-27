@@ -51,6 +51,8 @@ class WriteWeightActivity : AppCompatActivity() {
         binding = ActivityWriteWeightBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Запись цены/даты-времени"
+
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
 
         if(isNetwork){

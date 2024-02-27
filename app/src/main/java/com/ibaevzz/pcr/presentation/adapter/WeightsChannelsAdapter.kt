@@ -8,6 +8,7 @@ import android.widget.CheckBox
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.ibaevzz.pcr.R
 import com.ibaevzz.pcr.databinding.ChannelViewBinding
 
 class WeightsChannelsAdapter(var weights: Map<Int, Double?>,
@@ -28,15 +29,16 @@ class WeightsChannelsAdapter(var weights: Map<Int, Double?>,
 
     override fun getItemCount() = weights.size
 
+    @Suppress("DEPRECATION")
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         allCheckBox.add(holder.binding.isChecked)
-        if(position in checkedChannels){
-            holder.binding.isChecked.isChecked = true
-        }
+        holder.binding.isChecked.isChecked = position in checkedChannels
         if(position in isEqu.keys && position in checkedChannels){
             val color = if(isEqu[position] == weights[position]) Color.GREEN else Color.RED
             holder.binding.weight.setTextColor(color)
+        }else{
+            holder.binding.weight.setTextColor(holder.binding.root.context.resources.getColor(R.color.black))
         }
         holder.binding.isChecked.setOnCheckedChangeListener{_, isChecked ->
             if(isChecked){
