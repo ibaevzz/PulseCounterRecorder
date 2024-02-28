@@ -1,6 +1,7 @@
 package com.ibaevzz.pcr.data.repository
 
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
@@ -21,8 +22,8 @@ class SearchDeviceRepository @Inject constructor(private val bluetoothManager: B
                                                  private val context: Context){
 
     private val _foundDevices = MutableSharedFlow<List<Device>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    private val listOfDevices = mutableListOf<Device>()
-    private val listOfAddress = mutableListOf<String>()
+    private var listOfDevices = mutableListOf<Device>()
+    private var listOfAddress = mutableListOf<String>()
 
     private val searchBroadcastReceiver = object: BroadcastReceiver(){
         override fun onReceive(context: Context, intent: Intent) {
@@ -40,18 +41,41 @@ class SearchDeviceRepository @Inject constructor(private val bluetoothManager: B
         }
     }
 
+    private val discoveryStartedReceiver = object: BroadcastReceiver(){
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == BluetoothAdapter.ACTION_DISCOVERY_FINISHED){
+                try {
+                    context.unregisterReceiver(searchBroadcastReceiver)
+                }catch (_: Exception){}
+                bluetoothManager.adapter.startDiscovery()
+            }else if(intent.action == BluetoothAdapter.ACTION_DISCOVERY_STARTED){
+                context.registerReceiver(searchBroadcastReceiver, IntentFilter().also {
+                    it.addAction(BluetoothDevice.ACTION_FOUND)
+                })
+            }
+        }
+    }
+
     fun search(): SharedFlow<List<Device>> {
-        bluetoothManager.adapter.startDiscovery()
-        context.registerReceiver(searchBroadcastReceiver, IntentFilter().also {
-            it.addAction(BluetoothDevice.ACTION_FOUND)
+        context.registerReceiver(discoveryStartedReceiver, IntentFilter().also{
+            it.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+            it.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         })
+        bluetoothManager.adapter.startDiscovery()
         return _foundDevices.asSharedFlow()
+    }
+
+    fun restart(){
+        bluetoothManager.adapter.cancelDiscovery()
+        listOfDevices = mutableListOf()
+        listOfAddress = mutableListOf()
     }
 
     fun stopSearch(){
         try {
-            bluetoothManager.adapter.cancelDiscovery()
             context.unregisterReceiver(searchBroadcastReceiver)
+            context.unregisterReceiver(discoveryStartedReceiver)
+            bluetoothManager.adapter.cancelDiscovery()
         }catch (_: Exception){}
     }
 }

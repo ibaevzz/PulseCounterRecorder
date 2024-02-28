@@ -65,6 +65,7 @@ class BluetoothSearchActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityBluetoothConnectBinding.inflate(layoutInflater)
@@ -84,6 +85,13 @@ class BluetoothSearchActivity : AppCompatActivity() {
             })
             showDevices()
             viewModel.getDevices()
+        }
+
+        binding.root.setOnRefreshListener{
+            adapter.submitList(emptyList())
+            adapter.notifyDataSetChanged()
+            viewModel.restart()
+            binding.root.isRefreshing = false
         }
 
         lifecycleScope.launch(Dispatchers.Default) {

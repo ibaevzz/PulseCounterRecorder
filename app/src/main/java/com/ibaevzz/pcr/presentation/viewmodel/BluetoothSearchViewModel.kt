@@ -35,6 +35,10 @@ class BluetoothSearchViewModel(private val searchDeviceRepository: SearchDeviceR
         return searchDeviceRepository.search()
     }
 
+    fun restart(){
+        searchDeviceRepository.restart()
+    }
+
     fun stopSearch(){
         searchDeviceRepository.stopSearch()
     }
