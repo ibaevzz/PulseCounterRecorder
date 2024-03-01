@@ -52,5 +52,5 @@ class ArchiveViewModel(private val PCRRepository: PCRRepository): ViewModel(){
         }
     }
 
-    fun getCount() = if(PCRRepository.is10) 10 else 16
+    fun getCount() = PCRRepository.countOfChannels
 }
