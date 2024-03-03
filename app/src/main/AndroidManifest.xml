@@ -20,23 +20,24 @@
         android:theme="@style/Theme.PCR">
         <service
             android:name=".presentation.service.RssiService"
-            android:exported="false"/>
+            android:exported="false" />
+
         <activity
             android:name=".presentation.activity.ChannelActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.ArchiveActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.FindChannelActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.WriteWeightActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.MenuPCRActivity"
             android:exported="false"
@@ -57,6 +58,11 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.activity.ChooseConnectTypeActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".presentation.activity.UsernameActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
