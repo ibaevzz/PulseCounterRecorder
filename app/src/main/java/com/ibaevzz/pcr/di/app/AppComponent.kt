@@ -3,6 +3,7 @@ package com.ibaevzz.pcr.di.app
 import android.content.Context
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
+import com.ibaevzz.pcr.presentation.activity.UsernameActivity
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -13,6 +14,7 @@ interface AppComponent {
 
     fun getWifiComponentBuilder(): WifiComponent.Builder
     fun getBluetoothComponentBuilder(): BluetoothComponent.Builder
+    fun inject(usernameActivity: UsernameActivity)
 
     @Component.Builder
     interface Builder{

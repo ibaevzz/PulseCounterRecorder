@@ -32,6 +32,27 @@
 
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/make_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Сделать фото"/>
+
+            <Button
+                android:id="@+id/watch_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Просмотреть сохраненные фото"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <TextView
@@ -154,6 +175,7 @@
                 android:layout_margin="10dp"/>
 
             <EditText
+                android:id="@+id/meter_number"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"/>
@@ -165,9 +187,10 @@
             android:layout_height="wrap_content">
 
             <Button
+                android:id="@+id/write_to_db"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Записать"
+                android:text="Записать в БД"
                 android:layout_marginHorizontal="10dp"
                 android:layout_gravity="center"/>
 

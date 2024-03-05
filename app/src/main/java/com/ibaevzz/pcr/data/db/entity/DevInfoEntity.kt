@@ -9,13 +9,12 @@ import java.util.Date
 @Entity(tableName = "dev_info")
 @TypeConverters(DateConverter::class)
 data class DevInfoEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int? = null,
-    val address: Int,
-    val user: String,
+    @PrimaryKey
+    val id: Long,
+    val devId: Long,
+    val userId: Long,
     val channel: Int,
-    val name: String,
-    val nameValue: Int,
+    val meterNumber: Int,
     val value: Double,
     val weight: Double,
     val date: Date

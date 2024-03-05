@@ -2,24 +2,31 @@ package com.ibaevzz.pcr.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.ibaevzz.pcr.data.db.PulsarDatabase
+import com.ibaevzz.pcr.data.db.entity.DevInfoEntity
 import com.ibaevzz.pcr.data.repository.PCRRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flow
+import java.util.Date
 import javax.inject.Inject
 
-class ChannelViewModel(private val PCRRepository: PCRRepository): ViewModel() {
+class ChannelViewModel(private val PCRRepository: PCRRepository,
+                       private val pulsarDatabase: PulsarDatabase): ViewModel() {
 
     @Suppress("UNCHECKED_CAST")
-    class Factory @Inject constructor(private val PCRRepository: PCRRepository)
+    class Factory @Inject constructor(private val PCRRepository: PCRRepository,
+                                      private val pulsarDatabase: PulsarDatabase)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if(modelClass == ChannelViewModel::class.java){
-                return ChannelViewModel(PCRRepository) as T
+                return ChannelViewModel(PCRRepository, pulsarDatabase) as T
             }
             return super.create(modelClass)
         }
     }
+
+    var id: Long = Date().time
 
     private val _errorsSharedFlow = MutableSharedFlow<Exception>(replay = 1)
     val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
@@ -31,14 +38,6 @@ class ChannelViewModel(private val PCRRepository: PCRRepository): ViewModel() {
             }else{
                 emit(PCRRepository.address)
             }
-        }catch (ex: Exception){
-            _errorsSharedFlow.emit(ex)
-        }
-    }
-
-    fun getDeviceType() = flow{
-        try {
-            emit(PCRRepository.getDeviceType())
         }catch (ex: Exception){
             _errorsSharedFlow.emit(ex)
         }
@@ -72,6 +71,26 @@ class ChannelViewModel(private val PCRRepository: PCRRepository): ViewModel() {
         try{
             val value = PCRRepository.getChannelsValues(channel = channel)
             emit(value?.get(channel))
+        }catch (ex: Exception){
+            _errorsSharedFlow.emit(ex)
+        }
+    }
+
+    suspend fun writeToDB(channel: Int, meterNumber: Int){
+        try {
+            //TODO разобраться с этой частью
+            val address = PCRRepository.getPCRAddress()?:-1
+            val date = Date()
+            val value = PCRRepository.getChannelsValues(channel = channel)
+            val weight = PCRRepository.getChannelWeight(channel = channel)
+            val user = pulsarDatabase.getDao().getUser().id
+
+            val devInfoEntity = DevInfoEntity(id,
+                address.toLong(), user, channel, meterNumber,
+                value?.get(channel)?:-1.0, weight?:-1.0, date)
+            pulsarDatabase.getDao().insertDevInfo(devInfoEntity)
+
+            id = Date().time
         }catch (ex: Exception){
             _errorsSharedFlow.emit(ex)
         }

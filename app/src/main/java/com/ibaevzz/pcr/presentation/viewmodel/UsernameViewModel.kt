@@ -1,36 +1,37 @@
 package com.ibaevzz.pcr.presentation.viewmodel
 
-import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.ibaevzz.pcr.USERNAME
+import com.ibaevzz.pcr.data.db.PulsarDatabase
+import com.ibaevzz.pcr.data.db.entity.UserEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
-class UsernameViewModel(private val sharedPreferences: SharedPreferences,
-                        private val appScope: CoroutineScope): ViewModel() {
+class UsernameViewModel(private val appScope: CoroutineScope,
+                        private val pulsarDatabase: PulsarDatabase): ViewModel() {
 
     @Suppress("UNCHECKED_CAST")
-    class Factory @Inject constructor(private val sharedPreferences: SharedPreferences,
-                                      private val appScope: CoroutineScope)
+    class Factory @Inject constructor(private val appScope: CoroutineScope,
+                                      private val pulsarDatabase: PulsarDatabase)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if(modelClass == UsernameViewModel::class.java){
-                return UsernameViewModel(sharedPreferences, appScope) as T
+                return UsernameViewModel(appScope, pulsarDatabase) as T
             }
             return super.create(modelClass)
         }
     }
 
-    fun getUsername(): String?{
-        return sharedPreferences.getString(USERNAME, null)
+    suspend fun getUsername(): String?{
+        return pulsarDatabase.getDao().getUsername()
     }
 
     fun writeUsername(username: String){
         appScope.launch(Dispatchers.IO){
-            sharedPreferences.edit().putString(USERNAME, username).apply()
+            pulsarDatabase.getDao().insertUser(UserEntity(Date().time, username))
         }
     }
 

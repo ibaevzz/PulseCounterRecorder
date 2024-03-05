@@ -6,7 +6,7 @@ import kotlin.math.pow
 const val UUID = "00001101-0000-1000-8000-00805F9B34FB"
 const val PMSK_PNR = "PMSK_PNR"
 const val PORT = 4001
-const val USERNAME = "USERNAME"
+const val DATABASE = "pulsar_database"
 
 fun Int.ipToString(): String{
     var result = ""

@@ -231,6 +231,29 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
+        binding.writeToDb.setOnClickListener{
+            val meterNumber = binding.meterNumber.text.toString()
+            if(meterNumber.isNotEmpty()) {
+                binding.frame.visibility = View.VISIBLE
+                binding.progress.visibility = View.VISIBLE
+                enableButtons(false)
+                appScope.launch(Dispatchers.IO) {
+                    viewModel.writeToDB(channel, meterNumber.toInt())
+                    withContext(Dispatchers.Main) {
+                        binding.frame.visibility = View.INVISIBLE
+                        binding.progress.visibility = View.INVISIBLE
+                        enableButtons(true)
+                    }
+                }
+            }
+        }
+
+        binding.makePhoto.setOnClickListener{
+            val photoIntent = Intent(this, PhotoActivity::class.java)
+            photoIntent.putExtra(PhotoActivity.DEVICE_INFO_ID_EXTRA, viewModel.id)
+            startActivity(photoIntent)
+        }
+
         appScope.launch(Dispatchers.IO){
             viewModel.getAddress().collect{
                 binding.address.text = it.toString()

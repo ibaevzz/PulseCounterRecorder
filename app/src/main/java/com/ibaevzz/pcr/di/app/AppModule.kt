@@ -1,10 +1,9 @@
 package com.ibaevzz.pcr.di.app
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.room.Room
-import com.ibaevzz.pcr.USERNAME
-import com.ibaevzz.pcr.data.db.Database
+import com.ibaevzz.pcr.DATABASE
+import com.ibaevzz.pcr.data.db.PulsarDatabase
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import dagger.Module
@@ -23,11 +22,8 @@ class AppModule{
     }
     @Provides
     @Singleton
-    fun provideDatabase(context: Context): Database{
-        return Room.databaseBuilder(context, Database::class.java, "database.db").build()
-    }
-    @Provides
-    fun provideSharedPreferences(context: Context): SharedPreferences{
-        return context.getSharedPreferences(USERNAME, Context.MODE_PRIVATE)
+    fun provideDatabase(context: Context): PulsarDatabase{
+        return Room.databaseBuilder(context, PulsarDatabase::class.java, DATABASE)
+            .build()
     }
 }
