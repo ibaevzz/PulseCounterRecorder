@@ -38,7 +38,8 @@ abstract class Dao {
     @Query("SELECT * FROM dev_info")
     abstract fun getAllDevInfo(): Flow<List<DevInfoEntity>>
 
-    @Query("SELECT * FROM meter_image, dev_info, devices " +
+    @Query("SELECT meter_image.id, meter_image.devInfoId, meter_image.localPath " +
+            "FROM meter_image, dev_info, devices " +
             "WHERE dev_info.devId = devices.id AND meter_image.devInfoId = dev_info.id AND " +
             "devices.address = :address AND dev_info.channel = :channel")
     abstract fun getMeterImages(address: Int, channel: Int): Flow<List<MeterImageEntity>>
