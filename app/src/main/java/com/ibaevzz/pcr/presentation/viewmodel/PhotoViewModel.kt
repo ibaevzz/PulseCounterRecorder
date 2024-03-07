@@ -4,16 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ibaevzz.pcr.data.db.PulsarDatabase
 import com.ibaevzz.pcr.data.db.entity.MeterImageEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class PhotoViewModel(private val pulsarDatabase: PulsarDatabase): ViewModel() {
+class PhotoViewModel(private val appScope: CoroutineScope,
+                     private val pulsarDatabase: PulsarDatabase): ViewModel() {
 
     @Suppress("UNCHECKED_CAST")
-    class Factory @Inject constructor(private val pulsarDatabase: PulsarDatabase)
+    class Factory @Inject constructor(private val appScope: CoroutineScope,
+                                      private val pulsarDatabase: PulsarDatabase)
         : ViewModelProvider.Factory{
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if(modelClass == PhotoViewModel::class.java){
-                return PhotoViewModel(pulsarDatabase) as T
+                return PhotoViewModel(appScope, pulsarDatabase) as T
             }
             return super.create(modelClass)
         }
@@ -24,14 +29,16 @@ class PhotoViewModel(private val pulsarDatabase: PulsarDatabase): ViewModel() {
         return (lastId?:0L) + 1L
     }
 
-    suspend fun writeToDb(id: Long, devInfoId: Long, path: String){
-        pulsarDatabase.getDao().insertImage(
-            MeterImageEntity(
-                id,
-                devInfoId,
-                path
+    fun writeToDb(id: Long, devInfoId: Long, path: String){
+        appScope.launch(Dispatchers.IO) {
+            pulsarDatabase.getDao().insertImage(
+                MeterImageEntity(
+                    id,
+                    devInfoId,
+                    path
+                )
             )
-        )
+        }
     }
 
 }

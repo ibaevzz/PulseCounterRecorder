@@ -249,9 +249,17 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         binding.makePhoto.setOnClickListener{
-            val photoIntent = Intent(this, PhotoActivity::class.java)
-            photoIntent.putExtra(PhotoActivity.DEVICE_INFO_ID_EXTRA, viewModel.id)
-            startActivity(photoIntent)
+            lifecycleScope.launch {
+                viewModel.getAddress().collect{
+                    val photoIntent = Intent(this@ChannelActivity, PhotoActivity::class.java)
+                    photoIntent.putExtra(PhotoActivity.DEVICE_ADDRESS_EXTRA, it?:-1)
+                    photoIntent.putExtra(PhotoActivity.DEVICE_INFO_ID_EXTRA, viewModel.id)
+                    photoIntent.putExtra(PhotoActivity.CHANNEL_EXTRA, channel + 1)
+                    withContext(Dispatchers.Main) {
+                        startActivity(photoIntent)
+                    }
+                }
+            }
         }
 
         appScope.launch(Dispatchers.IO){
