@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ibaevzz.pcr.data.db.PulsarDatabase
 import com.ibaevzz.pcr.data.db.entity.DevInfoEntity
+import com.ibaevzz.pcr.data.db.entity.MeterDeviceEntity
 import com.ibaevzz.pcr.data.repository.PCRRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -76,18 +77,27 @@ class ChannelViewModel(private val PCRRepository: PCRRepository,
         }
     }
 
-    suspend fun writeToDB(channel: Int, meterNumber: Int){
+    suspend fun writeToDB(channel: Int, meterNumber: Long){
         try {
-            //TODO разобраться с этой частью
             val address = PCRRepository.getPCRAddress()?:-1
             val date = Date()
             val value = PCRRepository.getChannelsValues(channel = channel)
             val weight = PCRRepository.getChannelWeight(channel = channel)
             val user = pulsarDatabase.getDao().getUser().id
 
-            val devInfoEntity = DevInfoEntity(id,
-                address.toLong(), user, channel, meterNumber,
-                value?.get(channel)?:-1.0, weight?:-1.0, date)
+            val meterDeviceEntity = MeterDeviceEntity(meterNumber)
+            val devInfoEntity = DevInfoEntity(
+                id,
+                address.toLong(),
+                meterNumber,
+                user,
+                channel,
+                value?.get(channel)?:-1.0,
+                weight?:-1.0,
+                date
+            )
+
+            pulsarDatabase.getDao().insertMeterDevice(meterDeviceEntity)
             pulsarDatabase.getDao().insertDevInfo(devInfoEntity)
 
             id = Date().time

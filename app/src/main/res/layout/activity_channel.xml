@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.activity.ChannelActivity">
+    tools:context=".presentation.activity.ChannelActivity"
+    tools:ignore="HardcodedText,ButtonStyle,Autofill,LabelFor">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -67,7 +68,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:inputType="numberDecimal"/>
+                android:inputType="numberDecimal" />
 
         </LinearLayout>
 
@@ -81,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Читать"
-                android:layout_marginHorizontal="10dp"/>
+                android:layout_marginHorizontal="10dp" />
 
             <Button
                 android:id="@+id/write_value"
@@ -137,7 +138,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Читать"
-                android:layout_marginHorizontal="10dp"/>
+                android:layout_marginHorizontal="10dp" />
 
             <Button
                 android:id="@+id/write_weight"
@@ -178,6 +179,7 @@
                 android:id="@+id/meter_number"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:inputType="number"
                 android:layout_margin="10dp"/>
 
         </LinearLayout>

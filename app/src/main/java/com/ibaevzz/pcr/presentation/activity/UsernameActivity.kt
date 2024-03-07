@@ -32,6 +32,7 @@ class UsernameActivity : AppCompatActivity() {
         AppComponent.init(applicationContext).inject(this)
 
         val date = Date()
+        @Suppress("DEPRECATION")
         if(date.month >= 5 || date.year >= 2025){
             finish()
         }

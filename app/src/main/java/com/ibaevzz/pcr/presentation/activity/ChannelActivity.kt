@@ -238,7 +238,7 @@ class ChannelActivity : AppCompatActivity() {
                 binding.progress.visibility = View.VISIBLE
                 enableButtons(false)
                 appScope.launch(Dispatchers.IO) {
-                    viewModel.writeToDB(channel, meterNumber.toInt())
+                    viewModel.writeToDB(channel, meterNumber.toLong())
                     withContext(Dispatchers.Main) {
                         binding.frame.visibility = View.INVISIBLE
                         binding.progress.visibility = View.INVISIBLE

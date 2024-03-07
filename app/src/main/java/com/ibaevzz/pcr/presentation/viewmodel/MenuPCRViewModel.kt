@@ -40,7 +40,7 @@ class MenuPCRViewModel(private val PCRRepository: PCRRepository,
                 val address = PCRRepository.getPCRAddress() ?: -1
                 val devName = PCRRepository.getDeviceType() ?: "Неизвестное устройство"
                 pulsarDatabase.getDao()
-                    .insertDevice(DeviceEntity(address.toLong(), address, devName))
+                    .insertDevice(DeviceEntity(address.toLong(), devName))
             }catch (ex: Exception){
                 _errorsSharedFlow.emit(ex)
             }
