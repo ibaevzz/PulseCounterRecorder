@@ -9,10 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -23,6 +20,7 @@ import com.ibaevzz.pcr.di.app.AppComponent
 import com.ibaevzz.pcr.presentation.viewmodel.PhotoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -82,21 +80,31 @@ class PhotoActivity : AppCompatActivity() {
         }
 
         bindingImagePreview.save.setOnClickListener{
+            bindingImagePreview.save.isEnabled = false
+            bindingImagePreview.dont.isEnabled = false
             try {
                 val path = "${address}_${channel}_${imageId}.png"
                 val fileOutputStream = openFileOutput(path, Context.MODE_PRIVATE)
                 if (outputImage != null) {
-                    outputImage?.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-                    viewModel.writeToDb(imageId!!, devInfoId!!, path)
-                    finish()
+                    lifecycleScope.launch(Dispatchers.IO){
+                        outputImage?.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+                        viewModel.writeToDb(imageId!!, devInfoId!!, path)
+                        withContext(Dispatchers.Main){
+                            finish()
+                        }
+                    }
                 }else{
                     Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
                     setContentView(binding.root)
+                    bindingImagePreview.save.isEnabled = false
+                    bindingImagePreview.dont.isEnabled = false
                 }
             }catch (_: Exception){
                 Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
                 setContentView(binding.root)
                 outputImage = null
+                bindingImagePreview.save.isEnabled = false
+                bindingImagePreview.dont.isEnabled = false
             }
         }
 
@@ -132,10 +140,9 @@ class PhotoActivity : AppCompatActivity() {
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview)
+                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
 
-            } catch(_: Exception) {
-            }
+            } catch(_: Exception) {}
 
         }, ContextCompat.getMainExecutor(this))
     }

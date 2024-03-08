@@ -12,16 +12,16 @@ abstract class Dao {
     @Insert
     abstract suspend fun insertDevInfo(devInfoEntity: DevInfoEntity)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertImage(meterImageEntity: MeterImageEntity)
 
     @Insert
     abstract suspend fun insertUser(userEntity: UserEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertMeterDevice(meterDeviceEntity: MeterDeviceEntity)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertDevice(deviceEntity: DeviceEntity)
 
     //DELETE
