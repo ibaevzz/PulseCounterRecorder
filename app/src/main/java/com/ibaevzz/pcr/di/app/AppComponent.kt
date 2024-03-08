@@ -4,6 +4,7 @@ import android.content.Context
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import com.ibaevzz.pcr.presentation.activity.PhotoActivity
+import com.ibaevzz.pcr.presentation.activity.SendDatabaseActivity
 import com.ibaevzz.pcr.presentation.activity.UsernameActivity
 import dagger.BindsInstance
 import dagger.Component
@@ -17,6 +18,7 @@ interface AppComponent {
     fun getBluetoothComponentBuilder(): BluetoothComponent.Builder
     fun inject(usernameActivity: UsernameActivity)
     fun inject(photoActivity: PhotoActivity)
+    fun inject(sendDatabaseActivity: SendDatabaseActivity)
 
     @Component.Builder
     interface Builder{

@@ -9,6 +9,7 @@ const val UUID = "00001101-0000-1000-8000-00805F9B34FB"
 const val PMSK_PNR = "PMSK_PNR"
 const val PORT = 4001
 const val DATABASE = "database.sqlite"
+const val INTERMEDIATE_DATABASE = "date_database.sqlite"
 const val ZIP = "database.zip"
 
 fun Bitmap.rotateBitmap(angle: Float): Bitmap{

@@ -3,6 +3,8 @@ package com.ibaevzz.pcr.di.app
 import android.content.Context
 import androidx.room.Room
 import com.ibaevzz.pcr.DATABASE
+import com.ibaevzz.pcr.INTERMEDIATE_DATABASE
+import com.ibaevzz.pcr.data.db.IntermediateDatabase
 import com.ibaevzz.pcr.data.db.PulsarDatabase
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
@@ -24,6 +26,12 @@ class AppModule{
     @Singleton
     fun provideDatabase(context: Context): PulsarDatabase{
         return Room.databaseBuilder(context, PulsarDatabase::class.java, DATABASE)
+            .build()
+    }
+    @Provides
+    @Singleton
+    fun provideIntermediateDatabase(context: Context): IntermediateDatabase{
+        return Room.databaseBuilder(context, IntermediateDatabase::class.java, INTERMEDIATE_DATABASE)
             .build()
     }
 }

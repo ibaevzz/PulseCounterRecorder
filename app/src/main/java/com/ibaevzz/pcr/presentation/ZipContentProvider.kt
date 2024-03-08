@@ -10,7 +10,7 @@ import net.lingala.zip4j.ZipFile
 
 class ZipContentProvider : ContentProvider() {
 
-    override fun getType(uri: Uri): String = "application/octet-stream"
+    override fun getType(uri: Uri): String = "application/zip"
 
     override fun onCreate(): Boolean = true
 

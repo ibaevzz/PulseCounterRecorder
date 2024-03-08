@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="LockedOrientationActivity" >
+    tools:ignore="LockedOrientationActivity">
 
     <uses-permission
         android:name="android.permission.BLUETOOTH"
@@ -13,24 +13,28 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".App"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.PCR" >
+        android:theme="@style/Theme.PCR">
         <provider
             android:name=".presentation.ZipContentProvider"
             android:authorities="com.ibaevzz.pcr"
             android:enabled="true"
             android:exported="false"
-            android:grantUriPermissions="true"/>
+            android:grantUriPermissions="true" />
 
         <service
             android:name=".presentation.service.RssiService"
             android:exported="false" />
 
+        <activity
+            android:name=".presentation.activity.SendDatabaseActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".presentation.activity.PhotoActivity"
             android:exported="false"
@@ -76,7 +80,7 @@
         <activity
             android:name=".presentation.activity.UsernameActivity"
             android:exported="true"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
