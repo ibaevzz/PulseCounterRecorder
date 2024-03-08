@@ -18,6 +18,7 @@ import com.ibaevzz.pcr.databinding.ActivityPhotoBinding
 import com.ibaevzz.pcr.databinding.ImagePreviewViewBinding
 import com.ibaevzz.pcr.di.app.AppComponent
 import com.ibaevzz.pcr.presentation.viewmodel.PhotoViewModel
+import com.ibaevzz.pcr.rotateBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -83,12 +84,13 @@ class PhotoActivity : AppCompatActivity() {
             bindingImagePreview.save.isEnabled = false
             bindingImagePreview.dont.isEnabled = false
             try {
-                val path = "${address}_${channel}_${imageId}.png"
+                val path = "${address}_${channel}_${imageId}.jpeg"
                 val fileOutputStream = openFileOutput(path, Context.MODE_PRIVATE)
                 if (outputImage != null) {
                     lifecycleScope.launch(Dispatchers.IO){
-                        outputImage?.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+                        outputImage?.compress(Bitmap.CompressFormat.JPEG, 80, fileOutputStream)
                         viewModel.writeToDb(imageId!!, devInfoId!!, path)
+                        fileOutputStream.close()
                         withContext(Dispatchers.Main){
                             finish()
                         }
@@ -99,7 +101,7 @@ class PhotoActivity : AppCompatActivity() {
                     bindingImagePreview.save.isEnabled = false
                     bindingImagePreview.dont.isEnabled = false
                 }
-            }catch (_: Exception){
+            }catch (ex: Exception){
                 Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
                 setContentView(binding.root)
                 outputImage = null
@@ -161,7 +163,8 @@ class PhotoActivity : AppCompatActivity() {
                 }
                 if(bytes != null) {
                     buffer?.get(bytes)
-                    outputImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+                    val rotateOutputImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+                    outputImage = rotateOutputImage.rotateBitmap(90f)
                     bindingImagePreview.previewImage.setImageBitmap(outputImage)
                     setContentView(bindingImagePreview.root)
                 }

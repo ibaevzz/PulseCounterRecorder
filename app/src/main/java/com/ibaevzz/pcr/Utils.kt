@@ -1,12 +1,21 @@
 package com.ibaevzz.pcr
 
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import com.ibaevzz.pcr.data.exceptions.ToBytesException
 import kotlin.math.pow
 
 const val UUID = "00001101-0000-1000-8000-00805F9B34FB"
 const val PMSK_PNR = "PMSK_PNR"
 const val PORT = 4001
-const val DATABASE = "pulsar_database"
+const val DATABASE = "database.sqlite"
+const val ZIP = "database.zip"
+
+fun Bitmap.rotateBitmap(angle: Float): Bitmap{
+    val matrix = Matrix()
+    matrix.postRotate(angle)
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+}
 
 fun Int.ipToString(): String{
     var result = ""

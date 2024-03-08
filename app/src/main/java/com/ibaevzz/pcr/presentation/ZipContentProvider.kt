@@ -5,30 +5,22 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import com.ibaevzz.pcr.DATABASE
-import java.io.File
+import com.ibaevzz.pcr.ZIP
+import net.lingala.zip4j.ZipFile
 
-class DatabaseContentProvider : ContentProvider() {
+class ZipContentProvider : ContentProvider() {
 
     override fun getType(uri: Uri): String = "application/octet-stream"
 
     override fun onCreate(): Boolean = true
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
-        val typeDb = uri.encodedPath
-        var path = context?.getDatabasePath(DATABASE)?.parent?:""
-        when (typeDb) {
-            "/${DATABASE}.sqlite" -> {
-                path += "/${DATABASE}"
-            }
-            "/${DATABASE}.sqlite-shm" -> {
-                path += "/${DATABASE}-shm"
-            }
-            "/${DATABASE}.sqlite-wal" -> {
-                path += "/${DATABASE}-wal"
-            }
+        val type = uri.encodedPath
+        if(type == "/${ZIP}") {
+            val file = ZipFile(context?.filesDir?.path+"/$ZIP").file
+            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_WRITE)
         }
-        return ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_WRITE)
+        return null
     }
 
     override fun query(

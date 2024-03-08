@@ -26,7 +26,7 @@ class PhotoViewModel(private val appScope: CoroutineScope,
 
     suspend fun getIdForImage(devInfoId: Long): Long{
         val lastId = pulsarDatabase.getDao().getImagesByDevInfoId(devInfoId)
-        return (lastId?:0L) + 5L
+        return if((lastId?:0L) + 1L < 5) 5 else (lastId?:0L) + 1L
     }
 
     fun writeToDb(id: Long, devInfoId: Long, path: String){
