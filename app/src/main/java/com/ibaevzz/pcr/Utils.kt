@@ -11,6 +11,7 @@ const val PORT = 4001
 const val DATABASE = "database.sqlite"
 const val INTERMEDIATE_DATABASE = "date_database.sqlite"
 const val ZIP = "database.zip"
+const val DATE_ZIP = "date_database.zip"
 
 fun Bitmap.rotateBitmap(angle: Float): Bitmap{
     val matrix = Matrix()

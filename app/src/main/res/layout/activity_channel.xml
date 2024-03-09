@@ -43,12 +43,12 @@
                 android:layout_margin="10dp"
                 android:text="Сделать фото"/>
 
-            <Button
-                android:id="@+id/watch_photo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="Просмотреть сохраненные фото"/>
+<!--            <Button-->
+<!--                android:id="@+id/watch_photo"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_margin="10dp"-->
+<!--                android:text="Просмотреть сохраненные фото"/>-->
 
         </LinearLayout>
 

@@ -71,7 +71,7 @@ class PhotoActivity : AppCompatActivity() {
         if(devInfoId == -1L || address == -1L || channel == -1L) finish()
 
         lifecycleScope.launch(Dispatchers.IO){
-            imageId = viewModel.getIdForImage(devInfoId!!)
+            imageId = viewModel.getIdForImage()
         }
 
         if (allPermissionsGranted()) {

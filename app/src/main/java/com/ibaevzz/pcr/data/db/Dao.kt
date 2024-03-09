@@ -43,8 +43,8 @@ abstract class Dao {
     abstract suspend fun deleteAllMeterDevices()
 
     //GET
-    @Query("SELECT id FROM image WHERE dev_info_id = :devInfoId ORDER BY id DESC LIMIT 1")
-    abstract suspend fun getImagesByDevInfoId(devInfoId: Long): Long?
+    @Query("SELECT id FROM image ORDER BY id DESC LIMIT 1")
+    abstract suspend fun getImagesByDevInfoId(): Long?
 
     @Query("SELECT username FROM user LIMIT 1")
     abstract suspend fun getUsername(): String?

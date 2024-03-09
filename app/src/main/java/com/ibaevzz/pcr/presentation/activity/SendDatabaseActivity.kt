@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.ibaevzz.pcr.DATABASE
+import com.ibaevzz.pcr.DATE_ZIP
 import com.ibaevzz.pcr.INTERMEDIATE_DATABASE
 import com.ibaevzz.pcr.ZIP
 import com.ibaevzz.pcr.databinding.ActivitySendDatabaseBinding
@@ -117,7 +118,7 @@ class SendDatabaseActivity : AppCompatActivity() {
                 binding.progress.visibility = View.VISIBLE
                 lifecycleScope.launch(Dispatchers.IO) {
                     val paths = viewModel.updateIntermediateDatabase(otDate.time, doDate.time)
-                    val zip = ZipFile(filesDir.path + "/$ZIP")
+                    val zip = ZipFile(filesDir.path + "/$DATE_ZIP")
                     val databasePath = getDatabasePath(DATABASE)?.parent ?: ""
                     val fileFilter = ExcludeFileFilter {
                         var filter = true

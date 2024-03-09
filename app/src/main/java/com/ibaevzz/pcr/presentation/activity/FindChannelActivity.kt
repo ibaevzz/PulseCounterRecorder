@@ -64,93 +64,69 @@ class FindChannelActivity : AppCompatActivity() {
             if(binding.start.text == "Стоп"){
                 isStop = true
                 binding.start.text = "Старт"
-                binding.check.isEnabled = true
-                binding.write.isEnabled = true
                 return@setOnClickListener
             }else{
                 isStop = false
-                if(binding.count.text.toString().isEmpty()) return@setOnClickListener
-                val count = binding.count.text.toString().toInt()
-                var weight = -1.0
-                var value = -1.0
                 var isFind = false
-                if (count > 0 && binding.channels.adapter != null) {
-                    (view as Button).text = "Стоп"
-                    binding.check.isEnabled = false
-                    binding.write.isEnabled = false
-                    appScope.launch(Dispatchers.IO) {
-                        val adapter = binding.channels.adapter as ValuesChannelsAdapter
-                        while  (!isFind && !isStop) {
-                            for (i in 0 until adapter.getSize()) {
-                                if(!isStop) {
-                                    withContext(Dispatchers.Main) {
-                                        adapter.setWatch(i)
-                                    }
-                                    viewModel.getWeight(i).collect {
-                                        weight = it ?: -1.0
-                                    }
-                                    viewModel.getValue(i).collect {
-                                        value = it?.get(i) ?: -1.0
-                                    }
-                                    if(value != -1.0 && weight != -1.0) {
-                                        withContext(Dispatchers.Main) {
-                                            adapter.setValue(i, value)
-                                            if (((oldValues[i] ?: -1.0) <= value - (count - 0.2) * weight)) {
-                                                adapter.setFind(i)
-                                                oldValues[i] = value
-                                                isFind = true
-                                                isStop = true
-                                                binding.start.text = "Старт"
-                                            }
+                (view as Button).text = "Стоп"
+                binding.channels.adapter = ValuesChannelsAdapter(oldValues, null, ::toChannel)
+                appScope.launch(Dispatchers.IO) {
+                    val find = mutableListOf<Int>()
+                    while  (!isFind && !isStop) {
+                        delay(1000)
+                        viewModel.getValues().collect{
+                            if(it != null) {
+                                for (i in it) {
+                                    if((oldValues[i.key] ?: 1000000000.0) < i.value){
+                                        find.add(i.key)
+                                        isFind = true
+                                        isStop = true
+                                        withContext(Dispatchers.Main){
+                                            binding.start.text = "Старт"
                                         }
                                     }
-                                }else{
-                                    withContext(Dispatchers.Main){
-                                        adapter.unwatch()
-                                    }
-                                    break
                                 }
+                                oldValues = it.toMutableMap()
+                            }
+                            withContext(Dispatchers.Main){
+                                binding.channels.adapter = ValuesChannelsAdapter(oldValues, find, ::toChannel)
                             }
                         }
-                        withContext(Dispatchers.Main){
-                            binding.check.isEnabled = true
-                            binding.write.isEnabled = true
-                        }
                     }
                 }
             }
         }
 
-        binding.write.setOnClickListener{
-            binding.progress.visibility = View.VISIBLE
-            binding.frame.visibility = View.VISIBLE
-            appScope.launch {
-                viewModel.writeValues((binding.channels.adapter as ValuesChannelsAdapter).getValuesMap()).collect{
-                    withContext(Dispatchers.Main){
-                        binding.progress.visibility = View.INVISIBLE
-                        binding.frame.visibility = View.INVISIBLE
-                    }
-                }
-            }
-        }
-
-        binding.check.setOnClickListener{
-            binding.progress.visibility = View.VISIBLE
-            binding.frame.visibility = View.VISIBLE
-            appScope.launch(Dispatchers.IO){
-                viewModel.getValues().collect{
-                    binding.progress.visibility = View.INVISIBLE
-                    binding.frame.visibility = View.INVISIBLE
-
-                    oldValues = it?.toMutableMap() ?: mutableMapOf()
-                    val adapter = binding.channels.adapter as ValuesChannelsAdapter
-                    val newAdapter = ValuesChannelsAdapter(it, adapter.getChecked(), adapter.getAllValues(), toChannel = ::toChannel)
-                    withContext(Dispatchers.Main) {
-                        binding.channels.adapter = newAdapter
-                    }
-                }
-            }
-        }
+//        binding.write.setOnClickListener{
+//            binding.progress.visibility = View.VISIBLE
+//            binding.frame.visibility = View.VISIBLE
+//            appScope.launch {
+//                viewModel.writeValues((binding.channels.adapter as ValuesChannelsAdapter).getValuesMap()).collect{
+//                    withContext(Dispatchers.Main){
+//                        binding.progress.visibility = View.INVISIBLE
+//                        binding.frame.visibility = View.INVISIBLE
+//                    }
+//                }
+//            }
+//        }
+//
+//        binding.check.setOnClickListener{
+//            binding.progress.visibility = View.VISIBLE
+//            binding.frame.visibility = View.VISIBLE
+//            appScope.launch(Dispatchers.IO){
+//                viewModel.getValues().collect{
+//                    binding.progress.visibility = View.INVISIBLE
+//                    binding.frame.visibility = View.INVISIBLE
+//
+//                    oldValues = it?.toMutableMap() ?: mutableMapOf()
+//                    val adapter = binding.channels.adapter as ValuesChannelsAdapter
+//                    val newAdapter = ValuesChannelsAdapter(it, adapter.getChecked(), adapter.getAllValues(), toChannel = ::toChannel)
+//                    withContext(Dispatchers.Main) {
+//                        binding.channels.adapter = newAdapter
+//                    }
+//                }
+//            }
+//        }
 
         appScope.launch(Dispatchers.IO){
             viewModel.getAddress().collect{
@@ -167,7 +143,7 @@ class FindChannelActivity : AppCompatActivity() {
                     binding.frame.visibility = View.INVISIBLE
 
                     oldValues = it?.toMutableMap() ?: mutableMapOf()
-                    binding.channels.adapter = ValuesChannelsAdapter(it, emptySet(), toChannel = ::toChannel)
+                    binding.channels.adapter = ValuesChannelsAdapter(it, toChannel = ::toChannel)
                 }
             }
         }

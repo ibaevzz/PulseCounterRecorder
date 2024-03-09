@@ -239,6 +239,7 @@ abstract class PCRRepository{
     }
 
     suspend fun getPCRAddress(): Int?{
+        if(address != 0) return address
         val pAddress = splitAddressPulsar("0")
         val pReqNum = encodeReqNum()
         val reqLength = ((pAddress + READ_PARAM + DEV_ADDRESS + pReqNum).size + 3).toBytes(1, ByteOrder.Little)
