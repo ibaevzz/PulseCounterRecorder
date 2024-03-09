@@ -3,7 +3,6 @@ package com.ibaevzz.pcr.data.db
 import androidx.room.*
 import androidx.room.Dao
 import com.ibaevzz.pcr.data.db.entity.*
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class Dao {
@@ -24,6 +23,12 @@ abstract class Dao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertDevice(deviceEntity: DeviceEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertAllDevInfo(devInfoEntity: List<DevInfoEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertAllImage(meterImageEntity: List<MeterImageEntity>)
+
     //DELETE
     @Query("DELETE FROM dev_info")
     abstract suspend fun deleteAllDevInfo()
@@ -38,13 +43,6 @@ abstract class Dao {
     abstract suspend fun deleteAllMeterDevices()
 
     //GET
-    @Query("SELECT image.id, image.dev_info_id, image.name_of_image " +
-            "FROM image, dev_info, device, meter_device " +
-            "WHERE dev_info.device_address = device.address AND image.dev_info_id = dev_info.id AND " +
-            "device.address = :devAddress AND dev_info.channel = :channel AND "+
-            "meter_device.address = dev_info.meter_device_address AND meter_device.address = :meterDevAddress")
-    abstract fun getImages(devAddress: Long, meterDevAddress: Long, channel: Int): Flow<List<MeterImageEntity>>
-
     @Query("SELECT id FROM image WHERE dev_info_id = :devInfoId ORDER BY id DESC LIMIT 1")
     abstract suspend fun getImagesByDevInfoId(devInfoId: Long): Long?
 
@@ -53,5 +51,17 @@ abstract class Dao {
 
     @Query("SELECT * FROM user LIMIT 1")
     abstract suspend fun getUser(): UserEntity
+
+    @Query("SELECT * FROM dev_info")
+    abstract suspend fun getAllDevInfo(): List<DevInfoEntity>
+
+    @Query("SELECT * FROM image WHERE dev_info_id = :devInfoId")
+    abstract suspend fun getAllImagesByDevInfoId(devInfoId: Long): List<MeterImageEntity>
+
+    @Query("SELECT * FROM meter_device WHERE address = :address")
+    abstract suspend fun getMeterDeviceByAddress(address: Long): MeterDeviceEntity?
+
+    @Query("SELECT * FROM device WHERE address = :address")
+    abstract suspend fun getDeviceByAddress(address: Long): DeviceEntity?
 
 }

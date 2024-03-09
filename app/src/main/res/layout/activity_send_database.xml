@@ -10,19 +10,60 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:padding="50dp"
         android:gravity="center">
 
         <Button
             android:id="@+id/send_all_data"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Отправить всю базу данных" />
 
         <Button
             android:id="@+id/send_date_data"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:text="Отправить базу данных за период"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:layout_marginTop="20dp">
+
+            <Button
+                android:id="@+id/ot_button"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:text="Выбрать начальную дату"/>
+
+            <TextView
+                android:id="@+id/ot_text"
+                android:layout_marginLeft="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/do_button"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:text="Выбрать конечную дату"/>
+
+            <TextView
+                android:id="@+id/do_text"
+                android:layout_marginLeft="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
