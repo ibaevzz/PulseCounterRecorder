@@ -66,6 +66,18 @@
         app:layout_constraintLeft_toLeftOf="parent" />
 
     <Button
+        android:id="@+id/write_channel"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_marginLeft="80dp"
+        android:layout_marginRight="80dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/write_read_values"
+        app:layout_constraintTop_toBottomOf="@+id/find_channel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <Button
         android:id="@+id/read_archive"
         android:layout_width="match_parent"
         android:layout_height="70dp"
@@ -73,7 +85,7 @@
         android:layout_marginRight="80dp"
         android:layout_marginTop="20dp"
         android:text="@string/read_archive"
-        app:layout_constraintTop_toBottomOf="@+id/find_channel"
+        app:layout_constraintTop_toBottomOf="@+id/write_channel"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" />
 

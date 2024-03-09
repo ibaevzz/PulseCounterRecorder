@@ -27,7 +27,6 @@ class UsernameActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUsernameBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         AppComponent.init(applicationContext).inject(this)
 
@@ -47,6 +46,7 @@ class UsernameActivity : AppCompatActivity() {
                 }
             } else {
                 withContext(Dispatchers.Main) {
+                    setContentView(binding.root)
                     binding.write.setOnClickListener {
                         val username = binding.username.text.toString()
                         if (username.isNotEmpty()) {

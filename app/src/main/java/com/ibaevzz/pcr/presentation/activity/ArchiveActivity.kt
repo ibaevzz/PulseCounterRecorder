@@ -143,8 +143,12 @@ class ArchiveActivity : AppCompatActivity() {
                                         hourArchive.sortBy { it.first.time }
                                         hourArchive.reverse()
 
-                                        endDateHour.time = hourArchive[hourArchive.size - 1].first.time - PCRRepository.HOUR * 1000
-                                        startDateHour.time = endDateHour.time - PCRRepository.HOUR * 1000 * 19
+                                        if(hourArchive.size - 1 >= 0) {
+                                            endDateHour.time =
+                                                hourArchive[hourArchive.size - 1].first.time - PCRRepository.HOUR * 1000
+                                            startDateHour.time =
+                                                endDateHour.time - PCRRepository.HOUR * 1000 * 19
+                                        }
 
                                         binding.archive.adapter = ArchiveAdapter(hourArchive)
                                         view.isEnabled = true
@@ -167,8 +171,12 @@ class ArchiveActivity : AppCompatActivity() {
                                         dayArchive.sortBy { it.first.time }
                                         dayArchive.reverse()
 
-                                        endDateDay.time = dayArchive[dayArchive.size - 1].first.time - PCRRepository.DAY * 1000
-                                        startDateDay.time = endDateDay.time - PCRRepository.DAY * 1000 * 19
+                                        if(dayArchive.size > 0) {
+                                            endDateDay.time =
+                                                dayArchive[dayArchive.size - 1].first.time - PCRRepository.DAY * 1000
+                                            startDateDay.time =
+                                                endDateDay.time - PCRRepository.DAY * 1000 * 19
+                                        }
 
                                         binding.archive.adapter = ArchiveAdapter(dayArchive)
                                         view.isEnabled = true
@@ -191,8 +199,12 @@ class ArchiveActivity : AppCompatActivity() {
                                         monthArchive.sortBy { it.first.time }
                                         monthArchive.reverse()
 
-                                        endDateMonth.time = monthArchive[monthArchive.size - 1].first.time - PCRRepository.MONTH * 1000
-                                        startDateMonth.time = endDateMonth.time - PCRRepository.MONTH * 1000 * 19
+                                        if(monthArchive.size > 0) {
+                                            endDateMonth.time =
+                                                monthArchive[monthArchive.size - 1].first.time - PCRRepository.MONTH * 1000
+                                            startDateMonth.time =
+                                                endDateMonth.time - PCRRepository.MONTH * 1000 * 19
+                                        }
 
                                         binding.archive.adapter = ArchiveAdapter(monthArchive)
                                         view.isEnabled = true

@@ -32,6 +32,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".presentation.activity.WriteValuesActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".presentation.activity.SendDatabaseActivity"
             android:exported="false"
             android:screenOrientation="portrait"/>

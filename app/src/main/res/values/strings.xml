@@ -18,4 +18,5 @@
     <string name="write_weight">Запись ЦИ / Дата-времени</string>
     <string name="find_channel">Поиск канала</string>
     <string name="read_archive">Чтение архивов</string>
+    <string name="write_read_values">Запись/чтение значений</string>
 </resources>

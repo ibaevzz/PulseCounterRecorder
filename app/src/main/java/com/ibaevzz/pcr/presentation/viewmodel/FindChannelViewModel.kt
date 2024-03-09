@@ -24,14 +24,6 @@ class FindChannelViewModel(private val PCRRepository: PCRRepository, ): ViewMode
     private val _errorsSharedFlow = MutableSharedFlow<Exception>(replay = 1)
     val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
 
-    fun getWeight(channel: Int) = flow{
-        try {
-            emit(PCRRepository.getChannelWeight(channel = channel))
-        }catch (ex: Exception){
-            _errorsSharedFlow.emit(ex)
-        }
-    }
-
     fun getValue(channel: Int) = flow{
         try {
             emit(PCRRepository.getChannelsValues(channel = channel))
@@ -59,13 +51,4 @@ class FindChannelViewModel(private val PCRRepository: PCRRepository, ): ViewMode
             _errorsSharedFlow.emit(ex)
         }
     }
-
-    fun writeValues(values: Map<Int, Double>) = flow {
-        try {
-            emit(PCRRepository.writeChannelsValues(values = values))
-        }catch (ex: Exception){
-            _errorsSharedFlow.emit(ex)
-        }
-    }
-
 }

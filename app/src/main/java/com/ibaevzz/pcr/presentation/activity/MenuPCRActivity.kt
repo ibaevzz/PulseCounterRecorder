@@ -69,6 +69,12 @@ class MenuPCRActivity : AppCompatActivity() {
             startActivity(writeWeightIntent)
         }
 
+        binding.writeChannel.setOnClickListener{
+            val writeValueIntent = Intent(this, WriteValuesActivity::class.java)
+            writeValueIntent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)
+            startActivity(writeValueIntent)
+        }
+
         binding.findChannel.setOnClickListener{
             val findChannelIntent = Intent(this, FindChannelActivity::class.java)
             findChannelIntent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)

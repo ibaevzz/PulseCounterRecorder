@@ -82,7 +82,7 @@ class ChannelViewModel(private val PCRRepository: PCRRepository,
             val address = PCRRepository.getPCRAddress()?:-1
             val date = Date()
             val value = PCRRepository.getChannelsValues(channel = channel)
-            val weight = PCRRepository.getChannelWeight(channel = channel)
+            val weight = PCRRepository.getChannelWeight(channel = channel - 1)
             val user = pulsarDatabase.getDao().getUser().id
 
             val meterDeviceEntity = MeterDeviceEntity(meterNumber)
