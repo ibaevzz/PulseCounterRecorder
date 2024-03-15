@@ -295,7 +295,7 @@ private fun intToBin(a: Double): String{
 private fun fractionalToBin(a: Double): String{
     var ch = a % 1
     var s = ""
-    for(i in 0..60){
+    for(i in 0..100){
         ch *= 2
         if (ch>=1){
             s+="1"
@@ -307,5 +307,5 @@ private fun fractionalToBin(a: Double): String{
             break
         }
     }
-    return s
+    return s.padEnd(200, '0')
 }
