@@ -66,6 +66,7 @@ class ArchiveActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         supportActionBar?.title = "Чтение архивов"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
 

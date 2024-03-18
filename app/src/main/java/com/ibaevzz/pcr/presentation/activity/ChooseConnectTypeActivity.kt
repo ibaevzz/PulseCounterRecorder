@@ -14,6 +14,8 @@ class ChooseConnectTypeActivity: AppCompatActivity() {
         binding = ActivityChooseConnectTypeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Выбор типа подключения"
+
         binding.bluetooth.setOnClickListener{
             val bluetoothIntent = Intent(this, BluetoothSearchActivity::class.java)
             startActivity(bluetoothIntent)

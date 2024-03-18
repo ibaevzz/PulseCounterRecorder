@@ -62,6 +62,9 @@ class PhotoActivity : AppCompatActivity() {
         bindingImagePreview = ImagePreviewViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = ""
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         AppComponent.init(applicationContext).inject(this)
 
         devInfoId = intent.getLongExtra(DEVICE_INFO_ID_EXTRA, -1)

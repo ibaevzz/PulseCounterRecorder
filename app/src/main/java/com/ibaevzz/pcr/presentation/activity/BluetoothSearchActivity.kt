@@ -71,6 +71,9 @@ class BluetoothSearchActivity : AppCompatActivity() {
         binding = ActivityBluetoothConnectBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Поиск устройств"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         BluetoothComponent.init(applicationContext).inject(this)
 
         adapter = DeviceListAdapter(viewModel::callback)

@@ -39,6 +39,9 @@ class MenuPCRActivity : AppCompatActivity() {
         binding = ActivityPcrMenuBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Меню"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
 
         if(isNetwork){

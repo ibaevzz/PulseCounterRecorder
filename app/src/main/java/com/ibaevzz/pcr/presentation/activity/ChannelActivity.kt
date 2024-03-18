@@ -47,6 +47,9 @@ class ChannelActivity : AppCompatActivity() {
         binding = ActivityChannelBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Работа с каналом"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         val channel = intent.getIntExtra(CHANNEL_EXTRA, -1)
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
         if(channel == -1){

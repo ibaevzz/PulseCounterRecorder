@@ -31,6 +31,9 @@ class WifiConnectActivity: AppCompatActivity() {
         binding = ActivityWifiConnectBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = "Подключение по Wifi"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         WifiComponent.init(applicationContext).inject(this)
 
         binding.connect.setOnClickListener{

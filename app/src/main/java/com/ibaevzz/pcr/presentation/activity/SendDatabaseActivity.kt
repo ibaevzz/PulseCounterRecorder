@@ -46,6 +46,9 @@ class SendDatabaseActivity : AppCompatActivity() {
 
         AppComponent.init(applicationContext).inject(this)
 
+        supportActionBar?.title = ""
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         binding.sendAllData.setOnClickListener{
             binding.sendAllData.isEnabled = false
             binding.sendDateData.isEnabled = false

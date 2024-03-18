@@ -42,6 +42,7 @@ class FindChannelActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         supportActionBar?.title = "Поиск канала"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
 

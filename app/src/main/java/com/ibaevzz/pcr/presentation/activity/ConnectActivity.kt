@@ -66,6 +66,9 @@ class ConnectActivity : AppCompatActivity() {
         binding = ActivityConnectBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        supportActionBar?.title = ""
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         val address = intent.getStringExtra(ADDRESS_EXTRA)
         val ip = intent.getStringExtra(IP_EXTRA)
         val port = intent.getStringExtra(PORT_EXTRA)

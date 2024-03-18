@@ -45,6 +45,7 @@ class WriteValuesActivity: AppCompatActivity(){
         setContentView(binding.root)
 
         supportActionBar?.title = "Запись/чтение значений"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
 
