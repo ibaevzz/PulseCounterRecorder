@@ -6,5 +6,6 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "meter_device")
 data class MeterDeviceEntity(
     @PrimaryKey
-    val address: Long
+    val address: Long,
+    val resource: String?
 )

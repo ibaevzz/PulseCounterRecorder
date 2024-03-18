@@ -49,6 +49,10 @@ class MenuPCRViewModel(private val PCRRepository: PCRRepository,
 
     fun getAddress(): Flow<Int?> = flow {
         try {
+            PCRRepository.clearDevice()
+            PCRRepository.getPCRAddress()
+            PCRRepository.getDeviceType()
+            PCRRepository.getChannelsValues()
             emit(PCRRepository.getPCRAddress())
         }catch(ex: Exception){_errorsSharedFlow.emit(ex)}
     }

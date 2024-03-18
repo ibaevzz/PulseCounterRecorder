@@ -29,6 +29,14 @@ abstract class PCRRepository{
     private var devType = -1
     private val tryAttemptsMutex = Mutex()
 
+    fun clearDevice(){
+        reqNum = 0
+        address = 0
+        countOfChannels = -1
+        isLegacy = false
+        devType = -1
+    }
+
     private suspend fun sendMessage(message: ByteArray, time: Long = 20): ByteArray? {
         if(!checkConnection()) throw ConnectException()
         withContext(Dispatchers.IO) {
@@ -563,7 +571,7 @@ abstract class PCRRepository{
             101 to "Пульсар16-М"
         )
 
-        private val times = listOf(20L, 50L, 100L)
+        private val times = listOf(20L, 50L)
     }
 
 }

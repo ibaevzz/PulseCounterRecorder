@@ -2,6 +2,7 @@ package com.ibaevzz.pcr
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import androidx.room.migration.Migration
 import com.ibaevzz.pcr.data.exceptions.ToBytesException
 import kotlin.math.pow
 
@@ -12,6 +13,10 @@ const val DATABASE = "database.sqlite"
 const val INTERMEDIATE_DATABASE = "date_database.sqlite"
 const val ZIP = "database.zip"
 const val DATE_ZIP = "date_database.zip"
+val RESOURCE = arrayOf("ГВС", "ХВС", "Тепло")
+val MIGRATION_1_2 = Migration(1, 2){
+    it.execSQL("ALTER TABLE meter_device ADD COLUMN resource TEXT NULL DEFAULT NULL")
+}
 
 fun Bitmap.rotateBitmap(angle: Float): Bitmap{
     val matrix = Matrix()

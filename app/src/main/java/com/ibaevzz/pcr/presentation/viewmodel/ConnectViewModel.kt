@@ -40,9 +40,9 @@ class ConnectViewModel(private val PCRRepository: PCRRepository,
             try {
                 _isConnect.emit(null)
                 PCRRepository.connect(data, port)
-                PCRRepository.getPCRAddress()
-                PCRRepository.getDeviceType()
-                PCRRepository.getChannelsValues()
+//                PCRRepository.getPCRAddress()
+//                PCRRepository.getDeviceType()
+//                PCRRepository.getChannelsValues()
                 _isConnect.emit(true)
             }catch (ex: Exception) {
                 _errorsSharedFlow.emit(ex)

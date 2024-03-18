@@ -11,7 +11,7 @@ import com.ibaevzz.pcr.data.db.entity.*
         DeviceEntity::class,
         MeterDeviceEntity::class,
         UserEntity::class],
-    version = 1
+    version = 2
 )
 abstract class IntermediateDatabase: RoomDatabase(){
     abstract fun getDao(): Dao

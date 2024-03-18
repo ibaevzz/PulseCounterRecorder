@@ -77,7 +77,7 @@ class ChannelViewModel(private val PCRRepository: PCRRepository,
         }
     }
 
-    suspend fun writeToDB(channel: Int, meterNumber: Long){
+    suspend fun writeToDB(channel: Int, meterNumber: Long, resource: String){
         try {
             val address = PCRRepository.getPCRAddress()?:-1
             val date = Date()
@@ -85,7 +85,7 @@ class ChannelViewModel(private val PCRRepository: PCRRepository,
             val weight = PCRRepository.getChannelWeight(channel = channel - 1)
             val user = pulsarDatabase.getDao().getUser().id
 
-            val meterDeviceEntity = MeterDeviceEntity(meterNumber)
+            val meterDeviceEntity = MeterDeviceEntity(meterNumber, resource)
             val devInfoEntity = DevInfoEntity(
                 id,
                 address.toLong(),

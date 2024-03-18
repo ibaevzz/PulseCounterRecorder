@@ -5,10 +5,12 @@ import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.ibaevzz.pcr.R
+import com.ibaevzz.pcr.RESOURCE
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
@@ -231,14 +233,18 @@ class ChannelActivity : AppCompatActivity() {
             }
         }
 
+        val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, RESOURCE)
+        binding.resource.adapter = arrayAdapter
+
         binding.writeToDb.setOnClickListener{
             val meterNumber = binding.meterNumber.text.toString()
+            val resource = RESOURCE[binding.resource.selectedItemId.toInt()]
             if(meterNumber.isNotEmpty()) {
                 binding.frame.visibility = View.VISIBLE
                 binding.progress.visibility = View.VISIBLE
                 enableButtons(false)
                 appScope.launch(Dispatchers.IO) {
-                    viewModel.writeToDB(channel + 1, meterNumber.toLong())
+                    viewModel.writeToDB(channel + 1, meterNumber.toLong(), resource)
                     withContext(Dispatchers.Main) {
                         binding.frame.visibility = View.INVISIBLE
                         binding.progress.visibility = View.INVISIBLE
