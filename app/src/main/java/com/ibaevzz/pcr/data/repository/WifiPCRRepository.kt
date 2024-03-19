@@ -29,7 +29,6 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
     @Suppress("DEPRECATION")
     override fun checkConnection(): Boolean {
         if(!wifiManager.isWifiEnabled) throw WifiTurnedOffException()
-        if(wifiManager.dhcpInfo.gateway != macAddress.toInt()) throw WrongWifi()
         if(!wifiManager.connectionInfo.ssid.contains(PMSK_PNR)) throw WrongWifi()
         return isConnect
     }
