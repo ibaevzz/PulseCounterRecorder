@@ -21,7 +21,7 @@ class AppModule{
     @Provides
     @Singleton
     fun provideAppScope(): CoroutineScope{
-        return CoroutineScope(Executors.newFixedThreadPool(3).asCoroutineDispatcher())
+        return CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
     }
     @Provides
     @Singleton

@@ -3,6 +3,7 @@ package com.ibaevzz.pcr.presentation.activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -39,6 +40,8 @@ class MenuPCRActivity : AppCompatActivity() {
         binding = ActivityPcrMenuBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        buttonClicked(false)
+
         supportActionBar?.title = "Меню"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -51,11 +54,15 @@ class MenuPCRActivity : AppCompatActivity() {
         }
 
         binding.find.setOnClickListener {
+            buttonClicked(false)
+            binding.progress.visibility = View.VISIBLE
             appScope.launch(Dispatchers.Default) {
                 viewModel.getAddress()
                     .flowOn(Dispatchers.IO)
                     .collect {
                         withContext(Dispatchers.Main) {
+                            buttonClicked(true)
+                            binding.progress.visibility = View.INVISIBLE
                             if (it != null) {
                                 binding.address.text = it.toString()
                             } else {
@@ -90,17 +97,29 @@ class MenuPCRActivity : AppCompatActivity() {
             startActivity(readArchiveIntent)
         }
 
+        lifecycleScope.launch(Dispatchers.Default){
+            viewModel.completeSharedFloat.collect{
+                withContext(Dispatchers.Main) {
+                    binding.address.text = it.toString()
+                    buttonClicked(true)
+                    binding.progress.visibility = View.INVISIBLE
+                }
+            }
+        }
+
         lifecycleScope.launch(Dispatchers.Default) {
             viewModel.errorsSharedFlow.collect {
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {
+                            buttonClicked(true)
                             Toast.makeText(this@MenuPCRActivity, "Не удалось найти устройство", Toast.LENGTH_SHORT)
                                 .show()
                         }
                     }
                     is BluetoothTurnedOffException -> {
                         withContext(Dispatchers.Main){
+                            buttonClicked(true)
                             Toast.makeText(this@MenuPCRActivity, it.message, Toast.LENGTH_SHORT)
                                 .show()
                             val intent = Intent(this@MenuPCRActivity, ConnectActivity::class.java)
@@ -110,6 +129,7 @@ class MenuPCRActivity : AppCompatActivity() {
                     }
                     is WifiTurnedOffException -> {
                         withContext(Dispatchers.Main){
+                            buttonClicked(true)
                             Toast.makeText(this@MenuPCRActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@MenuPCRActivity, WifiConnectActivity::class.java))
                             finish()
@@ -117,6 +137,7 @@ class MenuPCRActivity : AppCompatActivity() {
                     }
                     is WrongWifi -> {
                         withContext(Dispatchers.Main){
+                            buttonClicked(true)
                             Toast.makeText(this@MenuPCRActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@MenuPCRActivity, WifiConnectActivity::class.java))
                             finish()
@@ -128,5 +149,13 @@ class MenuPCRActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun buttonClicked(click: Boolean){
+        binding.find.isEnabled = click
+        binding.writeChannel.isEnabled = click
+        binding.writeWeight.isEnabled = click
+        binding.readArchive.isEnabled = click
+        binding.findChannel.isEnabled = click
     }
 }

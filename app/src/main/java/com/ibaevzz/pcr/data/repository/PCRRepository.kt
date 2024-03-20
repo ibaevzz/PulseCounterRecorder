@@ -349,6 +349,7 @@ abstract class PCRRepository{
             if(resultList.isNotEmpty()) break
         }
         if(devType == 424 && resultList.size <= 10) countOfChannels = 10
+        if(devType == 424 && resultList.size >= 11) countOfChannels = 16
         return resultList.ifEmpty { null }
     }
 

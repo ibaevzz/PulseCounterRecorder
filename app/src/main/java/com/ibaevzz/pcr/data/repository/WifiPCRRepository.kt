@@ -36,6 +36,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
     override suspend fun connect(address: String, port: String) {
         this.macAddress = address
         if(checkConnection()) return
+        if(socket?.isConnected == true) return
 
         withContext(Dispatchers.IO) {
             connectMutex.lock()
@@ -62,6 +63,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
 
     override suspend fun closeConnection() {
         if(!checkConnection()) return
+        if(socket?.isConnected == true) return
 
         withContext(Dispatchers.IO){
             try {

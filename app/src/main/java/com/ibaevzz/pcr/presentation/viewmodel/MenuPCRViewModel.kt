@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 class MenuPCRViewModel(private val PCRRepository: PCRRepository,
                        appScope: CoroutineScope,
-                       pulsarDatabase: PulsarDatabase): ViewModel(){
+                       private val pulsarDatabase: PulsarDatabase): ViewModel(){
 
     @Suppress("UNCHECKED_CAST")
     class Factory @Inject constructor(private val PCRRepository: PCRRepository,
@@ -33,14 +33,18 @@ class MenuPCRViewModel(private val PCRRepository: PCRRepository,
     private val _errorsSharedFlow = MutableSharedFlow<Exception>(replay = 1)
     val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
 
+    private val _completeSharedFlow = MutableSharedFlow<Int>()
+    val completeSharedFloat = _completeSharedFlow.asSharedFlow()
+
     init {
         appScope.launch {
             try {
-                PCRRepository.getChannelsValues(channel = -1)
                 val address = PCRRepository.getPCRAddress() ?: -1
                 val devName = PCRRepository.getDeviceType() ?: "Неизвестное устройство"
+                PCRRepository.getChannelsValues(channel = -1)
                 pulsarDatabase.getDao()
                     .insertDevice(DeviceEntity(address.toLong(), devName))
+                _completeSharedFlow.emit(address)
             }catch (ex: Exception){
                 _errorsSharedFlow.emit(ex)
             }
@@ -50,9 +54,11 @@ class MenuPCRViewModel(private val PCRRepository: PCRRepository,
     fun getAddress(): Flow<Int?> = flow {
         try {
             PCRRepository.clearDevice()
-            PCRRepository.getPCRAddress()
-            PCRRepository.getDeviceType()
+            val address = PCRRepository.getPCRAddress() ?: -1
+            val devName = PCRRepository.getDeviceType() ?: "Неизвестное устройство"
             PCRRepository.getChannelsValues()
+            pulsarDatabase.getDao()
+                .insertDevice(DeviceEntity(address.toLong(), devName))
             emit(PCRRepository.getPCRAddress())
         }catch(ex: Exception){_errorsSharedFlow.emit(ex)}
     }
