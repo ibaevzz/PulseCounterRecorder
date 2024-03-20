@@ -192,7 +192,7 @@ class FindChannelActivity : AppCompatActivity() {
     private fun toChannel(channel: Int){
         val intent = Intent(this, ChannelActivity::class.java)
         intent.putExtra(ChannelActivity.CHANNEL_EXTRA, channel)
-        val isNetwork = intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
+        val isNetwork = this.intent.getBooleanExtra(ConnectActivity.IS_NETWORK_EXTRA, false)
         intent.putExtra(ConnectActivity.IS_NETWORK_EXTRA, isNetwork)
         startActivity(intent)
     }

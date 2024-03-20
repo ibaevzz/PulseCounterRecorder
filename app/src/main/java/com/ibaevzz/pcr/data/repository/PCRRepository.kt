@@ -341,7 +341,9 @@ abstract class PCRRepository{
                 val request = (pAddress + READ_CH + reqLength + pMask + pReqNum).injectCRC()
                 val result = tryAttempts(request, time)
                 if (result.status == Status.Success && result.responseError == 0) {
-                    resultList.putAll(decodeChannel(result.result, mask))
+                    try {
+                        resultList.putAll(decodeChannel(result.result, mask))
+                    }catch (_: Exception){}
                 }
             }
             if(resultList.isNotEmpty()) break
