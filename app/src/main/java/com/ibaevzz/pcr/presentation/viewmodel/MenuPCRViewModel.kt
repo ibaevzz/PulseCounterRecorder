@@ -34,7 +34,7 @@ class MenuPCRViewModel(private val PCRRepository: PCRRepository,
     val errorsSharedFlow = _errorsSharedFlow.asSharedFlow()
 
     private val _completeSharedFlow = MutableSharedFlow<Int>()
-    val completeSharedFloat = _completeSharedFlow.asSharedFlow()
+    val completeSharedFlow = _completeSharedFlow.asSharedFlow()
 
     init {
         appScope.launch {
@@ -46,6 +46,7 @@ class MenuPCRViewModel(private val PCRRepository: PCRRepository,
                     .insertDevice(DeviceEntity(address.toLong(), devName))
                 _completeSharedFlow.emit(address)
             }catch (ex: Exception){
+                _completeSharedFlow.emit(-1)
                 _errorsSharedFlow.emit(ex)
             }
         }

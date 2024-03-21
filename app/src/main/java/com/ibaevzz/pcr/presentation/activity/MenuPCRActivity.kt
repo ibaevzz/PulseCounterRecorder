@@ -7,12 +7,16 @@ import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.github.kotlintelegrambot.Bot
+import com.ibaevzz.pcr.ERROR_SET
+import com.ibaevzz.pcr.ERROR_SHARED_PREF
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
 import com.ibaevzz.pcr.databinding.ActivityPcrMenuBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
+import com.ibaevzz.pcr.sendErrorInClass
 import com.ibaevzz.pcr.presentation.viewmodel.MenuPCRViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +32,8 @@ class MenuPCRActivity : AppCompatActivity() {
 
     @Inject
     lateinit var appScope: CoroutineScope
-
+    @Inject
+    lateinit var bot: Bot
     @Inject
     lateinit var viewModelFactory: MenuPCRViewModel.Factory
     private val viewModel by lazy {
@@ -98,7 +103,7 @@ class MenuPCRActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.Default){
-            viewModel.completeSharedFloat.collect{
+            viewModel.completeSharedFlow.collect{
                 withContext(Dispatchers.Main) {
                     binding.address.text = it.toString()
                     buttonClicked(true)
@@ -108,11 +113,17 @@ class MenuPCRActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.Default) {
+            val errorPref = getSharedPreferences(ERROR_SHARED_PREF, MODE_PRIVATE)
+            val edit = errorPref.edit()
             viewModel.errorsSharedFlow.collect {
+                val errors = errorPref.getStringSet(ERROR_SET, mutableSetOf())?.toMutableSet()?: mutableSetOf()
+                errors.add(sendErrorInClass(this@MenuPCRActivity::class, it::class, it.stackTraceToString()))
+                edit.putStringSet(ERROR_SET, errors).apply()
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {
                             buttonClicked(true)
+                            binding.progress.visibility = View.INVISIBLE
                             Toast.makeText(this@MenuPCRActivity, "Не удалось найти устройство", Toast.LENGTH_SHORT)
                                 .show()
                         }
@@ -120,6 +131,7 @@ class MenuPCRActivity : AppCompatActivity() {
                     is BluetoothTurnedOffException -> {
                         withContext(Dispatchers.Main){
                             buttonClicked(true)
+                            binding.progress.visibility = View.INVISIBLE
                             Toast.makeText(this@MenuPCRActivity, it.message, Toast.LENGTH_SHORT)
                                 .show()
                             val intent = Intent(this@MenuPCRActivity, ConnectActivity::class.java)
@@ -130,6 +142,7 @@ class MenuPCRActivity : AppCompatActivity() {
                     is WifiTurnedOffException -> {
                         withContext(Dispatchers.Main){
                             buttonClicked(true)
+                            binding.progress.visibility = View.INVISIBLE
                             Toast.makeText(this@MenuPCRActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@MenuPCRActivity, WifiConnectActivity::class.java))
                             finish()
@@ -138,6 +151,7 @@ class MenuPCRActivity : AppCompatActivity() {
                     is WrongWifi -> {
                         withContext(Dispatchers.Main){
                             buttonClicked(true)
+                            binding.progress.visibility = View.INVISIBLE
                             Toast.makeText(this@MenuPCRActivity, it.message, Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@MenuPCRActivity, WifiConnectActivity::class.java))
                             finish()

@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".App"
@@ -28,9 +30,20 @@
             android:grantUriPermissions="true" />
 
         <service
+            android:name=".presentation.service.SendErrorService"
+            android:exported="false" />
+        <service
             android:name=".presentation.service.RssiService"
             android:exported="false" />
 
+        <activity
+            android:name=".presentation.SendReportActivity"
+            android:exported="false"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".presentation.activity.ChooseConnectTypeActivity" />
+        </activity>
         <activity
             android:name=".presentation.activity.WriteValuesActivity"
             android:exported="false"
@@ -39,7 +52,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.MenuPCRActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.SendDatabaseActivity"
             android:exported="false"
@@ -48,7 +60,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.ChooseConnectTypeActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.PhotoActivity"
             android:exported="false"
@@ -57,7 +68,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.ChannelActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.ChannelActivity"
             android:exported="false"
@@ -66,7 +76,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.FindChannelActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.ArchiveActivity"
             android:exported="false"
@@ -75,7 +84,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.MenuPCRActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.FindChannelActivity"
             android:exported="false"
@@ -84,7 +92,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.MenuPCRActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.WriteWeightActivity"
             android:exported="false"
@@ -93,7 +100,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.MenuPCRActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.MenuPCRActivity"
             android:exported="false"
@@ -102,7 +108,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.ConnectActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.BluetoothSearchActivity"
             android:exported="false"
@@ -111,7 +116,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.ConnectActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.WifiConnectActivity"
             android:exported="false"
@@ -121,7 +125,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.activity.ConnectActivity" />
         </activity>
-
         <activity
             android:name=".presentation.activity.ConnectActivity"
             android:exported="false"

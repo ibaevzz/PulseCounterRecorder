@@ -11,7 +11,8 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ibaevzz.pcr.R
+import com.github.kotlintelegrambot.Bot
+import com.ibaevzz.pcr.*
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
@@ -40,6 +41,8 @@ class ArchiveActivity : AppCompatActivity() {
     }
     @Inject
     lateinit var appScope: CoroutineScope
+    @Inject
+    lateinit var bot: Bot
 
     private var hourArchive = mutableListOf<Pair<Date, Double?>>()
     private var dayArchive = mutableListOf<Pair<Date, Double?>>()
@@ -240,7 +243,12 @@ class ArchiveActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.IO){
+            val errorPref = getSharedPreferences(ERROR_SHARED_PREF, MODE_PRIVATE)
+            val edit = errorPref.edit()
             viewModel.errorsSharedFlow.collect{
+                val errors = errorPref.getStringSet(ERROR_SET, mutableSetOf())?.toMutableSet()?: mutableSetOf()
+                errors.add(sendErrorInClass(this@ArchiveActivity::class, it::class, it.stackTraceToString()))
+                edit.putStringSet(ERROR_SET, errors).apply()
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {
