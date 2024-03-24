@@ -3,7 +3,7 @@ package com.ibaevzz.pcr.di.app
 import android.content.Context
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
-import com.ibaevzz.pcr.presentation.SendReportActivity
+import com.ibaevzz.pcr.presentation.activity.SendReportActivity
 import com.ibaevzz.pcr.presentation.activity.PhotoActivity
 import com.ibaevzz.pcr.presentation.activity.SendDatabaseActivity
 import com.ibaevzz.pcr.presentation.activity.UsernameActivity

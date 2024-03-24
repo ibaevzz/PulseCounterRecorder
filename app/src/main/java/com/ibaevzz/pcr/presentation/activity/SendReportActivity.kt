@@ -1,4 +1,4 @@
-package com.ibaevzz.pcr.presentation
+package com.ibaevzz.pcr.presentation.activity
 
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity

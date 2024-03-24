@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.ibaevzz.pcr.databinding.ActivityChooseConnectTypeBinding
-import com.ibaevzz.pcr.presentation.SendReportActivity
 import com.ibaevzz.pcr.presentation.service.SendErrorService
 
 class ChooseConnectTypeActivity: AppCompatActivity() {
