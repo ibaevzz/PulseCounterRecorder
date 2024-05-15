@@ -3,16 +3,19 @@ package com.ibaevzz.pcr.presentation.activity
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.ibaevzz.pcr.PMSK_PNR
-import com.ibaevzz.pcr.PORT
+import com.github.kotlintelegrambot.Bot
+import com.ibaevzz.pcr.*
 import com.ibaevzz.pcr.databinding.ActivityWifiConnectBinding
 import com.ibaevzz.pcr.di.wifi.WifiComponent
-import com.ibaevzz.pcr.ipToString
-import com.ibaevzz.pcr.stringToIp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class WifiConnectActivity: AppCompatActivity() {
@@ -25,6 +28,12 @@ class WifiConnectActivity: AppCompatActivity() {
 
     @Inject
     lateinit var wifiManager: WifiManager
+    @Inject
+    lateinit var locationManager: LocationManager
+    @Inject
+    lateinit var bot: Bot
+    @Inject
+    lateinit var appScope: CoroutineScope
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +51,11 @@ class WifiConnectActivity: AppCompatActivity() {
         binding.update.setOnClickListener{
             if(!checkPermissions()){
                 requestPermissions()
+                return@setOnClickListener
+            }
+            if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)&&
+                !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 return@setOnClickListener
             }
             updateIpAndHost()
@@ -80,7 +94,15 @@ class WifiConnectActivity: AppCompatActivity() {
                 binding.port.setText(PORT.toString())
             }
         }else{
-            Toast.makeText(this, "Подключена неподходящая сеть", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Подключена неподходящая сеть: ${wifiManager.connectionInfo.ssid}", Toast.LENGTH_SHORT).show()
+            appScope.launch(Dispatchers.IO){
+                val errorPref = getSharedPreferences(ERROR_SHARED_PREF, MODE_PRIVATE)
+                val errors = errorPref.getStringSet(ERROR_SET, mutableSetOf())?.toMutableSet()
+                    ?: mutableSetOf()
+                val edit = errorPref.edit()
+                errors.add("Пометка: @wrong_wifi\nПодключена неподходящая сеть: ${wifiManager.connectionInfo.ssid}")
+                edit.putStringSet(ERROR_SET, errors).apply()
+            }
         }
     }
 
