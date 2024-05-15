@@ -3,8 +3,10 @@ package com.ibaevzz.pcr.presentation.activity
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kotlintelegrambot.Bot
@@ -27,6 +29,8 @@ class WifiConnectActivity: AppCompatActivity() {
     @Inject
     lateinit var wifiManager: WifiManager
     @Inject
+    lateinit var locationManager: LocationManager
+    @Inject
     lateinit var bot: Bot
     @Inject
     lateinit var appScope: CoroutineScope
@@ -47,6 +51,11 @@ class WifiConnectActivity: AppCompatActivity() {
         binding.update.setOnClickListener{
             if(!checkPermissions()){
                 requestPermissions()
+                return@setOnClickListener
+            }
+            if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)&&
+                !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+                startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 return@setOnClickListener
             }
             updateIpAndHost()
