@@ -7,6 +7,7 @@ import android.location.LocationManager
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.provider.Settings
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kotlintelegrambot.Bot
@@ -113,5 +114,13 @@ class WifiConnectActivity: AppCompatActivity() {
     private fun requestPermissions(){
         requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_CODE)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == android.R.id.home){
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

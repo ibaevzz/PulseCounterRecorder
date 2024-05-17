@@ -2,6 +2,7 @@ package com.ibaevzz.pcr.presentation.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.ibaevzz.pcr.databinding.ActivityChooseConnectTypeBinding
 import com.ibaevzz.pcr.presentation.service.SendErrorService
@@ -42,5 +43,13 @@ class ChooseConnectTypeActivity: AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopService(errorIntent)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == android.R.id.home){
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

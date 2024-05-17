@@ -6,6 +6,7 @@ import android.content.Intent
 //import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.MenuItem
 //import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -195,4 +196,12 @@ class ConnectActivity : AppCompatActivity() {
 //            unbindService(serviceConnection)
 //        }
 //    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == android.R.id.home){
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
 }
