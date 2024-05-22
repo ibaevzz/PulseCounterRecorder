@@ -10,9 +10,6 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import com.github.kotlintelegrambot.Bot
-import com.ibaevzz.pcr.ERROR_SET
-import com.ibaevzz.pcr.ERROR_SHARED_PREF
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
@@ -20,7 +17,6 @@ import com.ibaevzz.pcr.databinding.ActivityFindChannelBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import com.ibaevzz.pcr.presentation.adapter.ValuesChannelsAdapter
-import com.ibaevzz.pcr.sendErrorInClass
 import com.ibaevzz.pcr.presentation.viewmodel.FindChannelViewModel
 import kotlinx.coroutines.*
 import java.io.IOException
@@ -37,8 +33,6 @@ class FindChannelActivity : AppCompatActivity() {
     }
     @Inject
     lateinit var appScope: CoroutineScope
-    @Inject
-    lateinit var bot: Bot
 
     private var isStop = false
     private var oldValues = mutableMapOf<Int, Double>()
@@ -157,12 +151,7 @@ class FindChannelActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch(Dispatchers.IO){
-            val errorPref = getSharedPreferences(ERROR_SHARED_PREF, MODE_PRIVATE)
-            val edit = errorPref.edit()
             viewModel.errorsSharedFlow.collect{
-                val errors = errorPref.getStringSet(ERROR_SET, mutableSetOf())?.toMutableSet()?: mutableSetOf()
-                errors.add(sendErrorInClass(this@FindChannelActivity::class, it::class, it.stackTraceToString()))
-                edit.putStringSet(ERROR_SET, errors).apply()
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {

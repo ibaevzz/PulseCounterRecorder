@@ -34,11 +34,4 @@
         android:text="Выгрузить базу данных"
         tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/send_report"
-        android:layout_width="200dp"
-        android:layout_height="80dp"
-        android:text="Отправить ошибку"
-        tools:ignore="HardcodedText" />
-
 </LinearLayout>

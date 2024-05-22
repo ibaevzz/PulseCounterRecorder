@@ -12,8 +12,8 @@ android {
         applicationId "com.ibaevzz.pcr"
         minSdk 26
         targetSdk 34
-        versionCode 5
-        versionName "1.5"
+        versionCode 6
+        versionName "1.6"
     }
 
     buildTypes {
@@ -42,7 +42,6 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
-    implementation 'io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.1.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
 
     def dagger_version = "2.47"

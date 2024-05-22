@@ -13,9 +13,6 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import com.github.kotlintelegrambot.Bot
-import com.ibaevzz.pcr.ERROR_SET
-import com.ibaevzz.pcr.ERROR_SHARED_PREF
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
@@ -23,7 +20,6 @@ import com.ibaevzz.pcr.databinding.ActivityWriteWeightBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
 import com.ibaevzz.pcr.presentation.adapter.WeightsChannelsAdapter
-import com.ibaevzz.pcr.sendErrorInClass
 import com.ibaevzz.pcr.presentation.viewmodel.WriteWeightViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,8 +46,6 @@ class WriteWeightActivity : AppCompatActivity() {
     }
     @Inject
     lateinit var appScope: CoroutineScope
-    @Inject
-    lateinit var bot: Bot
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -171,12 +165,7 @@ class WriteWeightActivity : AppCompatActivity() {
             }
         }
         lifecycleScope.launch(Dispatchers.IO){
-            val errorPref = getSharedPreferences(ERROR_SHARED_PREF, MODE_PRIVATE)
-            val edit = errorPref.edit()
             viewModel.errorsSharedFlow.collect{
-                val errors = errorPref.getStringSet(ERROR_SET, mutableSetOf())?.toMutableSet()?: mutableSetOf()
-                errors.add(sendErrorInClass(this@WriteWeightActivity::class, it::class, it.stackTraceToString()))
-                edit.putStringSet(ERROR_SET, errors).apply()
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {

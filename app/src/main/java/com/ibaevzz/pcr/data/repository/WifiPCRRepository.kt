@@ -63,7 +63,7 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
 
     override suspend fun closeConnection() {
         if(!checkConnection()) return
-        if(socket?.isConnected == false) return
+        if(socket?.isConnected == true) return
 
         withContext(Dispatchers.IO){
             try {
@@ -72,7 +72,6 @@ class WifiPCRRepository @Inject constructor(private val wifiManager: WifiManager
                 outputStream?.close()
                 inputStream?.close()
                 socket?.close()
-                socket = null
             }finally {
                 closeMutex.unlock()
             }

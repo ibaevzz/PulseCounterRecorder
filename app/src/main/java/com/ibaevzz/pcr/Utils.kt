@@ -18,9 +18,6 @@ val MIGRATION_1_2 = Migration(1, 2){
     it.execSQL("ALTER TABLE meter_device ADD COLUMN resource TEXT NULL DEFAULT NULL")
 }
 
-const val ERROR_SHARED_PREF = "ERROR_SHARED_PREF"
-const val ERROR_SET = "ERROR_SET"
-
 fun Bitmap.rotateBitmap(angle: Float): Bitmap{
     val matrix = Matrix()
     matrix.postRotate(angle)

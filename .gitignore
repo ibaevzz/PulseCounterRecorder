@@ -33,6 +33,3 @@ google-services.json
 
 # Android Profiling
 *.hprof
-
-# Telegram token
-app/src/main/java/com/ibaevzz/pcr/TOKEN.kt

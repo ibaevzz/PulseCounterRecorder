@@ -12,16 +12,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.github.kotlintelegrambot.Bot
-import com.ibaevzz.pcr.ERROR_SET
-import com.ibaevzz.pcr.ERROR_SHARED_PREF
 import com.ibaevzz.pcr.data.exceptions.BluetoothTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WifiTurnedOffException
 import com.ibaevzz.pcr.data.exceptions.WrongWifi
 import com.ibaevzz.pcr.databinding.ActivityConnectBinding
 import com.ibaevzz.pcr.di.bluetooth.BluetoothComponent
 import com.ibaevzz.pcr.di.wifi.WifiComponent
-import com.ibaevzz.pcr.sendErrorInClass
 //import com.ibaevzz.pcr.presentation.service.RssiService
 import com.ibaevzz.pcr.presentation.viewmodel.ConnectViewModel
 import kotlinx.coroutines.Dispatchers
@@ -48,8 +44,6 @@ class ConnectActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this, viewModelFactory)[ConnectViewModel::class.java]
     }
-    @Inject
-    lateinit var bot: Bot
 
     private val registerBluetoothEnabled = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
         if(it.resultCode != RESULT_OK){
@@ -105,12 +99,7 @@ class ConnectActivity : AppCompatActivity() {
 //            }
 //        }
         lifecycleScope.launch(Dispatchers.Default) {
-            val errorPref = getSharedPreferences(ERROR_SHARED_PREF, MODE_PRIVATE)
-            val edit = errorPref.edit()
             viewModel.errorsSharedFlow.collect{
-                val errors = errorPref.getStringSet(ERROR_SET, mutableSetOf())?.toMutableSet()?: mutableSetOf()
-                errors.add(sendErrorInClass(this@ConnectActivity::class, it::class, it.stackTraceToString()))
-                edit.putStringSet(ERROR_SET, errors).apply()
                 when(it){
                     is IOException -> {
                         withContext(Dispatchers.Main) {
